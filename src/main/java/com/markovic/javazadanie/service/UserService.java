@@ -1,7 +1,9 @@
 package com.markovic.javazadanie.service;
 import com.markovic.javazadanie.model.User;
 import com.markovic.javazadanie.repository.UserRepository;
+import jdk.jshell.spi.ExecutionControl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,8 +13,18 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public User create(User user) {
+    public User register(User user) {
+        if(userRepository.findByEmail(user.getEmail())!=null) {
+            throw new RuntimeException("User with email already exists");
+        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+
+    public User createUser(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -39,5 +51,16 @@ public class UserService {
             return true;
         }
         return false;
+    }
+
+    public User login(String email, String rawPassword) {
+        User user = userRepository.findByEmail(email);
+        if(user == null){
+            throw new RuntimeException("User not found");
+        }
+        if(!passwordEncoder.matches(rawPassword, user.getPassword())){
+            throw new RuntimeException("Wrong password");
+        }
+        return user;
     }
 }
