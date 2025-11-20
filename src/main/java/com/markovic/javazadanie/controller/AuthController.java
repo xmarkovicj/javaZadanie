@@ -15,6 +15,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.AuthenticationException;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
+
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,7 +35,7 @@ public class AuthController {
     private final UserRepository userRepository;
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody RegisterRequest req) {
+    public ResponseEntity<User> register(@Valid @RequestBody RegisterRequest req) {
         User u = new User();
         u.setName(req.getName());
         u.setEmail(req.getEmail());
@@ -47,7 +54,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest req) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
         try {
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
@@ -83,14 +90,23 @@ public class AuthController {
 
     @Data
     public static class RegisterRequest {
+        @NotBlank
         private String name;
+        @NotBlank
+        @Email
         private String email;
+        @NotBlank
+        @Size(min = 6, message = "Password at least 6 chars")
         private String password;
     }
 
     @Data
     public static class LoginRequest {
+        @NotBlank
+        @Email
         private String email;
+
+        @NotBlank
         private String password;
     }
 

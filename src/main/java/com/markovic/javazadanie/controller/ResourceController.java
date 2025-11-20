@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RestController
@@ -18,7 +21,7 @@ public class ResourceController {
 
     // CREATE
     @PostMapping
-    public ResponseEntity<Resource> create(@RequestBody CreateResourceRequest req) {
+    public ResponseEntity<Resource> create(@Valid @RequestBody CreateResourceRequest req) {
         Resource r = resourceService.create(
                 req.getGroupId(),
                 req.getUploadedBy(),
@@ -51,8 +54,8 @@ public class ResourceController {
 
     // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<Resource> update(@PathVariable Long id,
-                                           @RequestBody UpdateResourceRequest req) {
+    public ResponseEntity<Resource> update(@Valid @PathVariable Long id,
+                                          @Valid @RequestBody UpdateResourceRequest req) {
         return resourceService.update(id, req.getTitle(), req.getType(), req.getPathOrUrl())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -68,10 +71,18 @@ public class ResourceController {
     // DTOs
     @Data
     public static class CreateResourceRequest {
+        @NotNull
         private Long groupId;
+
+        @NotNull
         private Long uploadedBy;
+
+        @NotBlank
         private String title;
+
         private String type;
+
+        @NotBlank
         private String pathOrUrl;
     }
 

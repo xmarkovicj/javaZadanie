@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 
@@ -20,7 +21,7 @@ public class StudyGroupController {
 
     //Create
     @PostMapping
-    public ResponseEntity<StudyGroup> createGroup(@RequestBody StudyGroup group){
+    public ResponseEntity<StudyGroup> createGroup(@Valid @RequestBody StudyGroup group){
         return ResponseEntity.ok(groupService.create(group));
     }
 
@@ -40,7 +41,7 @@ public class StudyGroupController {
 
     //UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<StudyGroup> update(@PathVariable Long id, @RequestBody StudyGroup group){
+    public ResponseEntity<StudyGroup> update(@Valid @PathVariable Long id,@Valid @RequestBody StudyGroup group){
         return groupService.update(id, group)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -56,13 +57,13 @@ public class StudyGroupController {
 
     @PostMapping("/{groupId}/members/{userId}")
     public ResponseEntity<Membership> addMember(@PathVariable Long groupId, @PathVariable Long userId, @RequestBody(required = false) String role){
-        Membership m = membershipService.addUserToGroup(userId, groupId, role);
+        Membership m = membershipService.addMember(userId, groupId, role);
         return ResponseEntity.ok(m);
     }
 
     @GetMapping("/{groupId}/members")
     public ResponseEntity<List<Membership>> getMembers(@PathVariable Long groupId){
-        return ResponseEntity.ok(membershipService.getMembersOfGroup(groupId));
+        return ResponseEntity.ok(membershipService.getByGroup(groupId));
     }
 
 

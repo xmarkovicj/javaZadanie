@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RestController
@@ -18,7 +20,7 @@ public class CommentController {
 
     // CREATE
     @PostMapping
-    public ResponseEntity<Comment> create(@RequestBody CreateCommentRequest req) {
+    public ResponseEntity<Comment> create(@Valid @RequestBody CreateCommentRequest req) {
         Comment c = commentService.create(req.getTaskId(), req.getAuthorId(), req.getContent());
         return ResponseEntity.ok(c);
     }
@@ -53,8 +55,13 @@ public class CommentController {
 
     @Data
     public static class CreateCommentRequest {
+        @NotNull
         private Long taskId;
+
+        @NotNull
         private Long authorId;
+
+        @NotNull
         private String content;
     }
 }

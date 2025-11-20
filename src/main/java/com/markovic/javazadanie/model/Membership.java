@@ -17,20 +17,22 @@ import java.time.LocalDateTime;
 public class Membership {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "membership_id")
+    private Long membershipId;
 
     //Kto
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name="user_id", nullable = false)
     private User user;
 
     // v ktorej skupine
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name="group_id", nullable = false)
     private StudyGroup group;
 
     private String role = "MEMBER";
 
+    @Column(name = "joined_at")
     private LocalDateTime joinedAt = LocalDateTime.now();
 }

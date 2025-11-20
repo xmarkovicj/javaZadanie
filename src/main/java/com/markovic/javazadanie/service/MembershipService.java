@@ -4,42 +4,76 @@ import com.markovic.javazadanie.model.Membership;
 import com.markovic.javazadanie.model.StudyGroup;
 import com.markovic.javazadanie.model.User;
 import com.markovic.javazadanie.repository.MembershipRepository;
-import com.markovic.javazadanie.repository.UserRepository;
 import com.markovic.javazadanie.repository.StudyGroupRepository;
+import com.markovic.javazadanie.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class MembershipService {
+
     private final MembershipRepository membershipRepository;
-    private final StudyGroupRepository studyGroupRepository;
+    private final StudyGroupRepository groupRepository;
     private final UserRepository userRepository;
 
-    public Membership addUserToGroup(Long userId, Long groupId, String role) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-        StudyGroup group =studyGroupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("StudyGroup not found with id: " + groupId));
+    public Membership addMember(Long groupId, Long userId, String role) {
+        StudyGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found: " + groupId));
 
-        if(membershipRepository.existsByUser_IdAndGroup_Id(userId, groupId)){
-            throw new RuntimeException("Membership already exists");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+
+        if (membershipRepository.existsByUserAndGroup(user, group)) {
+            throw new RuntimeException("User is already a member of this group");
         }
+
         Membership m = Membership.builder()
-                .user(user)
                 .group(group)
-                .role(role != null ? role :"MEMBER")
+                .user(user)
+                .role(role != null ? role : "MEMBER")
                 .joinedAt(LocalDateTime.now())
                 .build();
 
         return membershipRepository.save(m);
     }
-    public List<Membership> getMembersOfGroup(Long groupId) {
-        StudyGroup group = studyGroupRepository.findById(groupId)
-                .orElseThrow(() -> new RuntimeException("StudyGroup not found with id: " + groupId));
-        return membershipRepository.findByGroup(group);
+
+    public List<Membership> getAll() {
+        return membershipRepository.findAll();
+    }
+
+    public Optional<Membership> getById(Long id) {
+        return membershipRepository.findById(id);
+    }
+
+    public List<Membership> getByGroup(Long groupId) {
+        StudyGroup g = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found: " + groupId));
+        return membershipRepository.findByGroup(g);
+    }
+
+    public List<Membership> getByUser(Long userId) {
+        User u = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        return membershipRepository.findByUser(u);
+    }
+
+    public Optional<Membership> updateRole(Long membershipId, String role) {
+        return membershipRepository.findById(membershipId).map(m -> {
+            m.setRole(role);
+            return membershipRepository.save(m);
+        });
+    }
+
+    public boolean remove(Long membershipId) {
+        if (membershipRepository.existsById(membershipId)) {
+            membershipRepository.deleteById(membershipId);
+            return true;
+        }
+        return false;
     }
 }

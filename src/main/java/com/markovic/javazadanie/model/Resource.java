@@ -2,6 +2,9 @@ package com.markovic.javazadanie.model;
 
 import lombok.*;
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 
@@ -21,17 +24,23 @@ public class Resource {
 
     @ManyToOne
     @JoinColumn(name = "group_id", nullable = false)
+    @NotNull(message = "Group: ")
     private StudyGroup group;
 
     @ManyToOne
     @JoinColumn(name = "uploaded_by", nullable = false)
+    @NotNull(message = "Uploader: ")
     private User uploadedBy;
 
     @Column(nullable = false)
+    @NotBlank(message = "Title: ")
+    @Size(max = 255)
     private String title;
 
+    @Size(max = 100)
     private String type;
 
+    @NotBlank(message = "Path or url: ")
     @Column(name = "path_or_url", nullable = false)
     private String pathOrUrl;
 

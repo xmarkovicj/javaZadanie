@@ -6,6 +6,8 @@ import com.markovic.javazadanie.service.UserService;
 import org.springframework.http.ResponseEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -16,7 +18,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
+    public User createUser(@Valid @RequestBody User user) {
         return userRepository.save(user);
     }
 
@@ -33,7 +35,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
+    public ResponseEntity<User> updateUser(@Valid @PathVariable Long id, @Valid @RequestBody User updatedUser) {
         return userService.updateUser(id, updatedUser)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

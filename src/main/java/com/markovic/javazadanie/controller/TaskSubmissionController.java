@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RestController
@@ -18,7 +21,7 @@ public class TaskSubmissionController {
 
     // CREATE (odovzdanie úlohy)
     @PostMapping
-    public ResponseEntity<TaskSubmission> create(@RequestBody CreateSubmissionRequest req) {
+    public ResponseEntity<TaskSubmission> create(@Valid @RequestBody CreateSubmissionRequest req) {
         TaskSubmission s = submissionService.create(
                 req.getTaskId(),
                 req.getUserId(),
@@ -56,8 +59,8 @@ public class TaskSubmissionController {
 
     // GRADE
     @PutMapping("/{id}/grade")
-    public ResponseEntity<TaskSubmission> grade(@PathVariable Long id,
-                                                @RequestBody GradeRequest req) {
+    public ResponseEntity<TaskSubmission> grade(@Valid @PathVariable Long id,
+                                               @Valid @RequestBody GradeRequest req) {
         return submissionService.grade(id, req.getGrade(), req.getFeedback())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -74,9 +77,15 @@ public class TaskSubmissionController {
     // DTOs
     @Data
     public static class CreateSubmissionRequest {
+        @NotNull
         private Long taskId;
+
+        @NotNull
         private Long userId;
+
+        @NotBlank
         private String content;
+
         private String attachmentUrl;
     }
 

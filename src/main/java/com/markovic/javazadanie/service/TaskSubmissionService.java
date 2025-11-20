@@ -31,7 +31,7 @@ public class TaskSubmissionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
 
-        if (submissionRepository.existsByTask_IdAndUser_Id(taskId, userId)) {
+        if (submissionRepository.existsByTask_TaskIdAndUser_Id(taskId, userId)) {
             throw new RuntimeException("User already submitted this task");
         }
 

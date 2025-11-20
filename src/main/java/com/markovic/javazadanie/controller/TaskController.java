@@ -8,6 +8,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,7 +21,7 @@ public class TaskController {
 
     //CREATE
     @PostMapping
-    public ResponseEntity<Task> create(@RequestBody CreateTaskRequest req){
+    public ResponseEntity<Task> create(@Valid @RequestBody CreateTaskRequest req){
         Task t = taskService.create(
                 req.getGroupId(),
                 req.getCreatedBy(),
@@ -53,7 +55,7 @@ public class TaskController {
 
     // UPDATE (title/description/status/deadline)
     @PutMapping("/{id}")
-    public ResponseEntity<Task> update(@PathVariable Long id, @RequestBody UpdateTaskRequest req) {
+    public ResponseEntity<Task> update(@Valid @PathVariable Long id,@Valid @RequestBody UpdateTaskRequest req) {
         return taskService.update(id, req.getTitle(), req.getDescription(), req.getStatus(), req.getDeadline())
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -68,8 +70,11 @@ public class TaskController {
 
     @Data
     public static class CreateTaskRequest {
+        @NotNull
         private Long groupId;         // FK -> groups.group_id
+        @NotNull
         private Long createdBy;       // FK -> users.id
+        @NotNull
         private String title;
         private String description;
         private String status;        // napr. "OPEN" / "DONE"
