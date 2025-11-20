@@ -52,8 +52,22 @@ public class LoginController {
                     statusLabel.setStyle("-fx-text-fill: green;");
                     statusLabel.setText("Login successful!");
 
-                    // TODO: tu po logine otvoríme hlavnú obrazovku (dashboard)
-                    // zatiaľ len message
+                    try {
+                        // načítaj dashboard.fxml
+                        javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                                getClass().getResource("/fxml/dashboard.fxml")
+                        );
+                        javafx.scene.Scene scene = new javafx.scene.Scene(loader.load());
+
+                        javafx.stage.Stage stage =
+                                (javafx.stage.Stage) loginEmailField.getScene().getWindow();
+                        stage.setScene(scene);
+                        stage.setTitle("Study Platform - Dashboard");
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        statusLabel.setStyle("-fx-text-fill: red;");
+                        statusLabel.setText("Failed to open dashboard: " + ex.getMessage());
+                    }
                 });
             } catch (Exception e) {
                 e.printStackTrace();

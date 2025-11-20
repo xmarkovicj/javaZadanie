@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.markovic.javazadanie.fx.DashboardController">
+
+    <top>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+            <Label text="Study Platform - Dashboard"
+                   style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+
+            <Pane HBox.hgrow="ALWAYS"/>
+
+            <Button text="Refresh" onAction="#onRefresh"/>
+            <Button text="New Group" onAction="#onNewGroup"/>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <TableView fx:id="groupsTable" prefHeight="400">
+                <columns>
+                    <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
+                    <TableColumn fx:id="colName" text="Name" prefWidth="200"/>
+                    <TableColumn fx:id="colDescription" text="Description" prefWidth="300"/>
+                </columns>
+            </TableView>
+
+            <Label fx:id="statusLabel" textFill="red"/>
+        </VBox>
+    </center>
+</BorderPane>
