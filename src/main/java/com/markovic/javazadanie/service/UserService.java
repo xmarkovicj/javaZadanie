@@ -1,6 +1,7 @@
 package com.markovic.javazadanie.service;
 import com.markovic.javazadanie.model.User;
 import com.markovic.javazadanie.repository.UserRepository;
+import com.markovic.javazadanie.repository.ActivityLogRepository;
 import jdk.jshell.spi.ExecutionControl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +15,7 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ActivityLogRepository activityLogRepository;
 
     public User register(User user) {
         if(userRepository.findByEmail(user.getEmail())!=null) {
@@ -50,6 +52,7 @@ public class UserService {
 
     public boolean deleteUser(Long id) {
         if(userRepository.existsById(id)){
+            activityLogRepository.deleteByUser_Id(id); // najprv logy
             userRepository.deleteById(id);
             return true;
         }

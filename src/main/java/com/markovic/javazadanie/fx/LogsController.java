@@ -4,12 +4,10 @@ import com.markovic.javazadanie.fx.dto.ActionLogDto;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
 
 import java.util.List;
 
@@ -19,16 +17,16 @@ public class LogsController {
     private TableView<ActionLogDto> logsTable;
 
     @FXML
-    private TableColumn<ActionLogDto, String> colTime;
+    private TableColumn<ActionLogDto, String> actionTypeColumn;
 
     @FXML
-    private TableColumn<ActionLogDto, String> colUser;
+    private TableColumn<ActionLogDto, String> userColumn;
 
     @FXML
-    private TableColumn<ActionLogDto, String> colType;
+    private TableColumn<ActionLogDto, String> createdAtColumn;
 
     @FXML
-    private TableColumn<ActionLogDto, String> colDescription;
+    private TableColumn<ActionLogDto, String> descriptionColumn;
 
     @FXML
     private Label statusLabel;
@@ -40,20 +38,17 @@ public class LogsController {
     private ComboBox<String> actionFilter;
 
     private final LogApiClient logApiClient = new LogApiClient();
-
-    // master data zoznam
-    private final ObservableList<ActionLogDto> masterLogs = FXCollections.observableArrayList();
     private FilteredList<ActionLogDto> filteredLogs;
 
     @FXML
     public void initialize() {
-        // väzby na properties z ActionLogDto
-        colTime.setCellValueFactory(new PropertyValueFactory<>("createdAt"));
-        colType.setCellValueFactory(new PropertyValueFactory<>("actionType"));
-        colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
+        // stĺpce
+        actionTypeColumn.setCellValueFactory(new PropertyValueFactory<>("actionType"));
+        descriptionColumn.setCellValueFactory(new PropertyValueFactory<>("description"));
+        createdAtColumn.setCellValueFactory(new PropertyValueFactory<>("createdAt"));
 
-        colUser.setCellValueFactory(cellData -> {
-            ActionLogDto log = cellData.getValue();
+        userColumn.setCellValueFactory(cellData -> {
+            var log = cellData.getValue();
             String email = "";
             if (log.getUser() != null && log.getUser().getEmail() != null) {
                 email = log.getUser().getEmail();
@@ -61,88 +56,29 @@ public class LogsController {
             return new SimpleStringProperty(email);
         });
 
-        // FilteredList nad masterLogs
-        filteredLogs = new FilteredList<>(masterLogs, log -> true);
-        logsTable.setItems(filteredLogs);
-
-        // naplniť actionFilter
-        if (actionFilter != null) {
-            actionFilter.getItems().setAll(
-                    "ALL",
-                    "USER_REGISTERED",
-                    "USER_LOGIN_SUCCESS",
-                    "TASK_CREATED",
-                    "TASK_SUBMITTED"
-            );
-            actionFilter.getSelectionModel().selectFirst();
-
-            actionFilter.getSelectionModel()
-                    .selectedItemProperty()
-                    .addListener((obs, oldVal, newVal) -> applyFilters());
+        // prázdny text v statuse
+        if (statusLabel != null) {
+            statusLabel.setText("No logs loaded");
         }
 
-        // listener na fulltext search
+        // filter zmeny
         if (searchField != null) {
-            searchField.textProperty()
-                    .addListener((obs, oldVal, newVal) -> applyFilters());
+            searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+        }
+        if (actionFilter != null) {
+            actionFilter.valueProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         }
 
         loadLogs();
     }
 
-    private void applyFilters() {
-        String text = searchField != null ? searchField.getText() : "";
-        String selectedAction = actionFilter != null
-                ? actionFilter.getSelectionModel().getSelectedItem()
-                : "ALL";
-
-        String search = text == null ? "" : text.trim().toLowerCase();
-        boolean filterAllActions = (selectedAction == null
-                || selectedAction.isBlank()
-                || selectedAction.equalsIgnoreCase("ALL"));
-
-        filteredLogs.setPredicate(log -> {
-            if (log == null) return false;
-
-            // filter podľa typu akcie
-            if (!filterAllActions) {
-                if (log.getActionType() == null
-                        || !log.getActionType().equalsIgnoreCase(selectedAction)) {
-                    return false;
-                }
-            }
-
-            // fulltext filter
-            if (search.isEmpty()) {
-                return true;
-            }
-
-            String action = log.getActionType() != null ? log.getActionType().toLowerCase() : "";
-            String desc = log.getDescription() != null ? log.getDescription().toLowerCase() : "";
-            String email = "";
-            String name = "";
-
-            if (log.getUser() != null) {
-                if (log.getUser().getEmail() != null) {
-                    email = log.getUser().getEmail().toLowerCase();
-                }
-                if (log.getUser().getName() != null) {
-                    name = log.getUser().getName().toLowerCase();
-                }
-            }
-
-            return action.contains(search)
-                    || desc.contains(search)
-                    || email.contains(search)
-                    || name.contains(search);
-        });
-
-        statusLabel.setText(filteredLogs.size() + " logov zobrazených (z " + masterLogs.size() + ")");
-    }
-
     private void loadLogs() {
-        statusLabel.setText("Načítavam logy...");
-        masterLogs.clear();
+        if (statusLabel != null) {
+            statusLabel.setStyle("-fx-text-fill: #9ca3af;"); // sivá
+            statusLabel.setText("Loading logs...");
+        }
+
+        logsTable.getItems().clear();
 
         new Thread(() -> {
             try {
@@ -150,17 +86,63 @@ public class LogsController {
                 List<ActionLogDto> logs = logApiClient.getLogs(token);
 
                 Platform.runLater(() -> {
-                    masterLogs.setAll(logs);   // naplníme master list
-                    applyFilters();            // hneď aplikujeme filtre
-                    statusLabel.setText(masterLogs.size() + " logov načítaných");
+                    filteredLogs = new FilteredList<>(FXCollections.observableArrayList(logs), p -> true);
+                    logsTable.setItems(filteredLogs);
+
+                    if (statusLabel != null) {
+                        statusLabel.setStyle("-fx-text-fill: #22c55e;"); // zelená
+                        statusLabel.setText(logs.size() + " logs loaded");
+                    }
+
+                    // naplniť filter typov
+                    if (actionFilter != null) {
+                        actionFilter.getItems().clear();
+                        actionFilter.getItems().add("All");
+                        logs.stream()
+                                .map(ActionLogDto::getActionType)
+                                .distinct()
+                                .sorted()
+                                .forEach(actionFilter.getItems()::add);
+                        actionFilter.getSelectionModel().selectFirst();
+                    }
                 });
             } catch (Exception e) {
                 e.printStackTrace();
-                Platform.runLater(() ->
-                        statusLabel.setText("Nepodarilo sa načítať logy: " + e.getMessage())
-                );
+                Platform.runLater(() -> {
+                    if (statusLabel != null) {
+                        statusLabel.setStyle("-fx-text-fill: #ef4444;"); // červená
+                        statusLabel.setText("Failed to load logs: " + e.getMessage());
+                    }
+                });
             }
         }).start();
+    }
+
+    private void applyFilter() {
+        if (filteredLogs == null) return;
+
+        String text = searchField != null ? searchField.getText() : "";
+        String action = actionFilter != null ? actionFilter.getValue() : "All";
+
+        final String lowerText = text == null ? "" : text.toLowerCase();
+        final String actionFilterVal = action == null ? "All" : action;
+
+        filteredLogs.setPredicate(log -> {
+            boolean matchesText = lowerText.isEmpty()
+                    || (log.getActionType() != null && log.getActionType().toLowerCase().contains(lowerText))
+                    || (log.getDescription() != null && log.getDescription().toLowerCase().contains(lowerText))
+                    || (log.getUser() != null && log.getUser().getEmail() != null
+                    && log.getUser().getEmail().toLowerCase().contains(lowerText));
+
+            boolean matchesAction = "All".equals(actionFilterVal)
+                    || (log.getActionType() != null && log.getActionType().equals(actionFilterVal));
+
+            return matchesText && matchesAction;
+        });
+
+        if (statusLabel != null) {
+            statusLabel.setText(filteredLogs.size() + " logs visible");
+        }
     }
 
     @FXML
@@ -170,7 +152,9 @@ public class LogsController {
 
     @FXML
     private void onClose() {
-        Stage stage = (Stage) logsTable.getScene().getWindow();
-        stage.close();
+        if (logsTable != null && logsTable.getScene() != null) {
+            javafx.stage.Stage stage = (javafx.stage.Stage) logsTable.getScene().getWindow();
+            stage.close();
+        }
     }
 }

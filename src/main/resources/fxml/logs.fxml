@@ -1,61 +1,77 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns="http://javafx.com/javafx/11.0.2"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.markovic.javazadanie.fx.LogsController"
-            stylesheets="@logs.css">
+            stylesheets="@app-dark.css"
+            styleClass="root-pane">
 
-    <!-- TOP: header + filter -->
     <top>
-        <VBox spacing="8.0">
+        <VBox spacing="8">
             <padding>
-                <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+                <Insets top="12" right="16" bottom="8" left="16"/>
             </padding>
-
-            <Label text="Activity log"
-                   styleClass="title-label"/>
-
-            <HBox spacing="8.0" alignment="CENTER_LEFT">
+            <Label text="Activity log" styleClass="title-label"/>
+            <HBox spacing="8" alignment="CENTER_LEFT">
                 <TextField fx:id="searchField"
-                           promptText="Filter by text (action, user, details)"/>
+                           promptText="Filter textu (akcia, používateľ, detaily)"/>
                 <ComboBox fx:id="actionFilter"
-                          promptText="Action type"
-                          prefWidth="160.0"/>
+                          promptText="Typ akcie"
+                          prefWidth="180"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button text="Refresh"
+                <Button text="Obnoviť"
                         onAction="#onRefresh"
                         styleClass="primary-button"/>
             </HBox>
         </VBox>
     </top>
 
-    <!-- CENTER: table -->
     <center>
-            <TableView fx:id="logsTable">
-                <columns>
-                    <TableColumn fx:id="colType"        text="Action"  prefWidth="140.0"/>
-                    <TableColumn fx:id="colUser"        text="User"    prefWidth="180.0"/>
-                    <TableColumn fx:id="colTime"        text="Time"    prefWidth="170.0"/>
-                    <TableColumn fx:id="colDescription" text="Details" prefWidth="400.0"/>
-                </columns>
-            </TableView>
-    </center>
-
-
-    <!-- BOTTOM: status bar -->
-    <bottom>
-        <HBox alignment="CENTER_RIGHT" spacing="8.0">
+        <VBox spacing="10">
             <padding>
-                <Insets top="6.0" right="10.0" bottom="6.0" left="10.0"/>
+                <Insets top="4" right="16" bottom="10" left="16"/>
             </padding>
 
-            <Label fx:id="statusLabel"
-                   text="No logs loaded"
-                   styleClass="status-label"/>
+            <TableView fx:id="logsTable" prefHeight="380">
+                <columns>
+                    <TableColumn fx:id="actionTypeColumn"
+                                 text="Akcia"
+                                 prefWidth="150"/>
+                    <TableColumn fx:id="userColumn"
+                                 text="Používateľ"
+                                 prefWidth="200"/>
+                    <TableColumn fx:id="createdAtColumn"
+                                 text="Čas"
+                                 prefWidth="180"/>
+                    <TableColumn fx:id="descriptionColumn"
+                                 text="Detaily"
+                                 prefWidth="400"/>
+                </columns>
+            </TableView>
+
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <Label fx:id="statusLabel"
+                       text=""
+                       styleClass="status-label"/>
+                <Label fx:id="errorLabel"
+                       text=""
+                       styleClass="error-label"/>
+            </HBox>
+        </VBox>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" spacing="8">
+            <padding>
+                <Insets top="6" right="16" bottom="10" left="16"/>
+            </padding>
+            <Button text="Zavrieť"
+                    onAction="#onClose"
+                    styleClass="secondary-button"/>
         </HBox>
     </bottom>
 

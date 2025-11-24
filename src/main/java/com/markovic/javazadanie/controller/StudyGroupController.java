@@ -65,6 +65,14 @@ public class StudyGroupController {
     public ResponseEntity<List<Membership>> getMembers(@PathVariable Long groupId){
         return ResponseEntity.ok(membershipService.getByGroup(groupId));
     }
+    @DeleteMapping("/{groupId}/members/{userId}")
+    public ResponseEntity<Void> removeMember(@PathVariable Long groupId,
+                                             @PathVariable Long userId) {
+        boolean removed = membershipService.removeMember(userId, groupId);
+        return removed ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
+    }
+
 
 
 

@@ -4,46 +4,89 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<?import javafx.scene.chart.BubbleChart?>
-<BorderPane fx:id="dashboardRoot"
-            xmlns="http://javafx.com/javafx/11.0.2"
+<BorderPane xmlns="http://javafx.com/javafx/11.0.2"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.markovic.javazadanie.fx.DashboardController">
+            fx:id="dashboardRoot"
+            fx:controller="com.markovic.javazadanie.fx.DashboardController"
+            stylesheets="@dashboard.css">
 
-
+    <!-- TOP: header + akcie -->
     <top>
-        <HBox spacing="10" alignment="CENTER_LEFT">
+        <VBox spacing="10.0">
             <padding>
-                <Insets top="10" right="10" bottom="10" left="10"/>
+                <Insets top="15.0" right="15.0" bottom="10.0" left="15.0"/>
             </padding>
-            <Label text="Study Platform - Dashboard"
-                   style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
 
-            <Pane HBox.hgrow="ALWAYS"/>
-            <Button text="Open group" onAction="#onOpenGroup"/>
-            <Button text="Refresh" onAction="#onRefresh"/>
-            <Button text="New Group" onAction="#onNewGroup"/>
-            <Button text="Logy" onAction="#openLogs"/>
-            <Button text="Users" onAction="#openUsers"/>
+            <!-- Hlavný header -->
+            <HBox spacing="10.0" alignment="CENTER_LEFT">
+                <Label text="Study Groups"
+                       styleClass="title-label"/>
 
-        </HBox>
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button text="Logs"
+                        onAction="#openLogs"
+                        styleClass="secondary-button"/>
+
+                <Button text="Users"
+                        onAction="#openUsers"
+                        styleClass="secondary-button"/>
+
+                <Button text="New group"
+                        onAction="#onNewGroup"
+                        styleClass="primary-button"/>
+
+                <Button text="Refresh"
+                        onAction="#onRefresh"
+                        styleClass="secondary-button"/>
+            </HBox>
+
+            <!-- Info text (voliteľný) -->
+            <Label text="Overview of all study groups you can manage"
+                   styleClass="subtitle-label"/>
+        </VBox>
     </top>
 
+    <!-- CENTER: tabuľka skupín -->
     <center>
-        <VBox spacing="10">
+        <VBox spacing="10.0">
             <padding>
-                <Insets top="10" right="10" bottom="10" left="10"/>
+                <Insets top="0.0" right="15.0" bottom="10.0" left="15.0"/>
             </padding>
 
-            <TableView fx:id="groupsTable" prefHeight="400">
+            <TableView fx:id="groupsTable">
                 <columns>
-                    <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
-                    <TableColumn fx:id="colName" text="Name" prefWidth="200"/>
-                    <TableColumn fx:id="colDescription" text="Description" prefWidth="300"/>
+                    <TableColumn fx:id="colId"
+                                 text="ID"
+                                 prefWidth="70.0"/>
+                    <TableColumn fx:id="colName"
+                                 text="Name"
+                                 prefWidth="200.0"/>
+                    <TableColumn fx:id="colDescription"
+                                 text="Description"
+                                 prefWidth="380.0"/>
                 </columns>
             </TableView>
 
-            <Label fx:id="statusLabel" textFill="red"/>
+            <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                <Button text="Open group"
+                        onAction="#onOpenGroup"
+                        styleClass="primary-button"/>
+            </HBox>
         </VBox>
     </center>
+
+    <!-- BOTTOM: status bar -->
+    <bottom>
+        <HBox alignment="CENTER_LEFT">
+            <padding>
+                <Insets top="6.0" right="15.0" bottom="6.0" left="15.0"/>
+            </padding>
+
+            <Label fx:id="statusLabel"
+                   text="Ready"
+                   styleClass="status-label"/>
+        </HBox>
+    </bottom>
+
 </BorderPane>

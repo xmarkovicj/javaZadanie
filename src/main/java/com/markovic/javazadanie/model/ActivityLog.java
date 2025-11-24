@@ -3,6 +3,8 @@ package com.markovic.javazadanie.model;
 import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 
 
 @Entity
@@ -18,8 +20,10 @@ public class ActivityLog {
     @Column(name = "log_id")
     private Long logId;
 
-    @ManyToOne
-    @JoinColumn(name="user_id", nullable = false)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    @NotFound(action = NotFoundAction.IGNORE)   // 👈 dôležité
     private User user;
 
     @Column(nullable = false)

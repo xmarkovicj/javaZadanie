@@ -6,21 +6,20 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import javafx.scene.Scene;
 
 import java.io.IOException;
-
 
 public class DashboardController {
 
     @FXML
-    private TableView<StudyGroupItem> groupsTable;
+    private BorderPane dashboardRoot;
 
     @FXML
-    private BorderPane dashboardRoot;
+    private TableView<StudyGroupItem> groupsTable;
 
     @FXML
     private TableColumn<StudyGroupItem, Number> colId;
@@ -42,15 +41,29 @@ public class DashboardController {
         statusLabel.setText("");
 
         // nastavenie stĺpcov
-        colId.setCellValueFactory(cellData -> new javafx.beans.property.SimpleLongProperty(
-                cellData.getValue().getId() != null ? cellData.getValue().getId() : 0L
-        ));
-        colName.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(
-                cellData.getValue().getName()
-        ));
-        colDescription.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(
-                cellData.getValue().getDescription()
-        ));
+        colId.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleLongProperty(
+                        cellData.getValue().getId() != null
+                                ? cellData.getValue().getId()
+                                : 0L
+                )
+        );
+
+        colName.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(
+                        cellData.getValue().getName() != null
+                                ? cellData.getValue().getName()
+                                : ""
+                )
+        );
+
+        colDescription.setCellValueFactory(cellData ->
+                new javafx.beans.property.SimpleStringProperty(
+                        cellData.getValue().getDescription() != null
+                                ? cellData.getValue().getDescription()
+                                : ""
+                )
+        );
 
         groupsTable.setItems(groups);
 
@@ -65,63 +78,90 @@ public class DashboardController {
 
     @FXML
     private void onNewGroup() {
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("New Group");
-        dialog.setHeaderText("Create new study group");
-        dialog.setContentText("Group name:");
+        try {
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("New group");
+            dialog.setHeaderText("Create new study group");
+            dialog.setContentText("Group name:");
 
-        dialog.showAndWait().ifPresent(name -> {
-            if (name.trim().isEmpty()) {
-                statusLabel.setText("Name cannot be empty");
+            var nameOpt = dialog.showAndWait();
+            if (nameOpt.isEmpty()) {
+                return; // user stlačil Cancel
+            }
+
+            String name = nameOpt.get().trim();
+            if (name.isEmpty()) {
+                statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
+                statusLabel.setText("Name cannot be empty.");
                 return;
             }
 
             TextInputDialog descDialog = new TextInputDialog();
-            descDialog.setTitle("New Group");
+            descDialog.setTitle("New group");
             descDialog.setHeaderText("Description");
             descDialog.setContentText("Description:");
 
-            descDialog.showAndWait().ifPresent(desc -> {
-                createGroup(name, desc);
-            });
-        });
+            var descOpt = descDialog.showAndWait();
+            if (descOpt.isEmpty()) {
+                return;
+            }
+
+            String desc = descOpt.get();
+
+            // reálne vytvorenie skupiny
+            createGroup(name, desc);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
+            statusLabel.setText("Failed to open new group dialog: " + e.getMessage());
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Cannot create group");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
+        }
     }
+
+
     @FXML
     private void onOpenGroup() {
         StudyGroupItem selected = groupsTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            statusLabel.setStyle("-fx-text-fill: red;");
+            statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
             statusLabel.setText("Please select a group first.");
             return;
         }
 
         try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+            FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/fxml/group_detail.fxml")
             );
-            javafx.scene.Parent root = loader.load();
+            Parent root = loader.load();
 
             GroupDetailController controller = loader.getController();
-            controller.initData(selected, LoginController.getJwtToken());
+            controller.initData(selected, SessionManager.getInstance().getToken());
 
-            javafx.stage.Stage stage = (javafx.stage.Stage) groupsTable.getScene().getWindow();
-            stage.setScene(new javafx.scene.Scene(root));
+            Stage stage = (Stage) groupsTable.getScene().getWindow();
+            stage.setScene(new Scene(root));
             stage.setTitle("Group detail - " + selected.getName());
         } catch (Exception e) {
             e.printStackTrace();
-            statusLabel.setStyle("-fx-text-fill: red;");
+            statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
             statusLabel.setText("Failed to open group: " + e.getMessage());
         }
     }
 
-
-
     private void loadGroups() {
+        statusLabel.setStyle("-fx-text-fill: #cccccc;");
         statusLabel.setText("Loading groups...");
         groups.clear();
 
-        String token = LoginController.getJwtToken();
+        String token = SessionManager.getInstance().getToken();
+
         if (token == null || token.isEmpty()) {
+            statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
             statusLabel.setText("No JWT token. Please login again.");
             return;
         }
@@ -131,13 +171,13 @@ public class DashboardController {
                 var list = apiClient.getGroups(token);
                 Platform.runLater(() -> {
                     groups.setAll(list);
-                    statusLabel.setStyle("-fx-text-fill: green;");
+                    statusLabel.setStyle("-fx-text-fill: #4caf50;");
                     statusLabel.setText("Loaded " + list.size() + " groups.");
                 });
             } catch (Exception e) {
                 e.printStackTrace();
                 Platform.runLater(() -> {
-                    statusLabel.setStyle("-fx-text-fill: red;");
+                    statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
                     statusLabel.setText("Failed to load groups: " + e.getMessage());
                 });
             }
@@ -145,10 +185,13 @@ public class DashboardController {
     }
 
     private void createGroup(String name, String description) {
+        statusLabel.setStyle("-fx-text-fill: #cccccc;");
         statusLabel.setText("Creating group...");
 
-        String token = LoginController.getJwtToken();
+        String token = SessionManager.getInstance().getToken();
+
         if (token == null || token.isEmpty()) {
+            statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
             statusLabel.setText("No JWT token. Please login again.");
             return;
         }
@@ -158,51 +201,69 @@ public class DashboardController {
                 StudyGroupItem created = apiClient.createGroup(token, name, description);
                 Platform.runLater(() -> {
                     groups.add(created);
-                    statusLabel.setStyle("-fx-text-fill: green;");
+                    statusLabel.setStyle("-fx-text-fill: #4caf50;");
                     statusLabel.setText("Group created: " + created.getName());
                 });
             } catch (Exception e) {
                 e.printStackTrace();
                 Platform.runLater(() -> {
-                    statusLabel.setStyle("-fx-text-fill: red;");
+                    statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
                     statusLabel.setText("Failed to create group: " + e.getMessage());
                 });
             }
         }).start();
     }
+
     @FXML
     private void openLogs() {
         try {
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+            FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/fxml/logs.fxml")
             );
-            javafx.scene.Parent root = loader.load();
+            Parent root = loader.load();
 
             Stage stage = new Stage();
-            stage.setTitle("Systémové logy");
+            stage.setTitle("System logs");
             stage.setScene(new Scene(root));
+
+            // bezpečne nastav ownera, ak je k dispozícii
+            if (dashboardRoot != null && dashboardRoot.getScene() != null) {
+                Stage owner = (Stage) dashboardRoot.getScene().getWindow();
+                stage.initOwner(owner);
+            }
+
             stage.show();
+            statusLabel.setStyle("-fx-text-fill: #4caf50;");
+            statusLabel.setText("Logs window opened.");
         } catch (Exception e) {
             e.printStackTrace();
+            statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
+            statusLabel.setText("Failed to open logs: " + e.getMessage());
+
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Cannot open logs");
+            alert.setContentText(e.getMessage());
+            alert.showAndWait();
         }
     }
+
+
     @FXML
     private void openUsers() {
         try {
             FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/fxml/users.fxml"));
+                    getClass().getResource("/fxml/users.fxml")
+            );
             Parent root = loader.load();
 
             Stage stage = new Stage();
             stage.setTitle("Users");
             stage.setScene(new Scene(root));
-            stage.initOwner(dashboardRoot.getScene().getWindow()); // ak máš root pre dashboard
+            stage.initOwner(dashboardRoot.getScene().getWindow());
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
-            // prípadne nejaký alert
         }
     }
-
-
 }

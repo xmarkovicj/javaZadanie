@@ -3,7 +3,11 @@ package com.markovic.javazadanie.fx;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -109,5 +113,37 @@ public class TaskApiClient {
         String tDue = node.has("dueDate") ? node.get("dueDate").asText() : dueDate;
 
         return new TaskItem(id, tTitle, tDesc, tDue);
+    }
+    public void deleteTask(String token, Long taskId) {
+        HttpURLConnection conn = null;
+        try {
+            URL url = new URL(BASE_URL + "/" + taskId);  // napr. http://localhost:8080/api/tasks/5
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("DELETE");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setRequestProperty("Authorization", "Bearer " + token);
+
+            int status = conn.getResponseCode();
+
+            // 200 OK alebo 204 No Content berieme ako úspech
+            if (status == HttpURLConnection.HTTP_OK || status == HttpURLConnection.HTTP_NO_CONTENT) {
+                return;
+            }
+
+            // inak si prečítame error body a hodíme výnimku
+            InputStream err = conn.getErrorStream();
+            String body = "";
+            if (err != null) {
+                body = new String(err.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+            }
+            throw new RuntimeException("Failed to delete task: " + status + " " + body);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to delete task", e);
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
+        }
     }
 }

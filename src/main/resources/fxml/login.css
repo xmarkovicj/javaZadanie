@@ -1,0 +1,92 @@
+/* Root background */
+.root {
+    -fx-background-color: linear-gradient(to bottom right, #1f2933, #111827);
+    -fx-font-family: "Segoe UI", "Roboto", sans-serif;
+}
+
+/* Hlavný nadpis hore */
+.app-title {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.app-subtitle {
+    -fx-text-fill: #d1d5db;
+    -fx-font-size: 13px;
+}
+
+/* Card štýl (biele panelíky pre login/register) */
+.card {
+    -fx-background-color: rgba(17, 24, 39, 0.94);
+    -fx-padding: 18 18 18 18;
+    -fx-spacing: 8;
+    -fx-background-radius: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.15, 0, 6);
+    -fx-min-width: 280;
+}
+
+.card-title {
+    -fx-text-fill: #e5e7eb;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 6 0;
+}
+
+.field-label {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+/* Textové polia */
+.text-field,
+.password-field {
+    -fx-background-color: #111827;
+    -fx-text-fill: #e5e7eb;
+    -fx-prompt-text-fill: #6b7280;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #374151;
+    -fx-border-width: 1;
+    -fx-padding: 6 8 6 8;
+    -fx-font-size: 13px;
+}
+
+.text-field:focused,
+.password-field:focused {
+    -fx-border-color: #3b82f6;
+    -fx-effect: dropshadow(gaussian, rgba(37,99,235,0.45), 10, 0.2, 0, 0);
+}
+
+/* Primárne tlačidlo */
+.primary-button {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: #f9fafb;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 999;
+    -fx-padding: 8 14 8 14;
+    -fx-cursor: hand;
+    -fx-alignment: CENTER;
+}
+
+.primary-button:hover {
+    -fx-background-color: #2563eb;
+}
+
+.primary-button:pressed {
+    -fx-background-color: #1d4ed8;
+}
+
+/* Error label pod formulármi */
+.error-label {
+    -fx-text-fill: #f87171;
+    -fx-font-size: 11px;
+}
+
+/* Status bar dole */
+.status-label {
+    -fx-text-fill: #9ca3af;
+    -fx-font-size: 11px;
+}

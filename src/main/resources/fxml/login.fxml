@@ -4,55 +4,104 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="com.markovic.javazadanie.fx.LoginController">
+<BorderPane xmlns="http://javafx.com/javafx/11.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.markovic.javazadanie.fx.LoginController"
+            stylesheets="@app-dark.css"
+            styleClass="root-pane">
 
     <center>
-        <VBox spacing="10" alignment="CENTER">
+        <HBox spacing="40">
             <padding>
-                <Insets top="20" right="20" bottom="20" left="20"/>
+                <Insets top="40" right="40" bottom="40" left="40"/>
             </padding>
 
-            <Label text="Study Platform" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            <!-- Left "branding" side -->
+            <VBox spacing="12">
+                <Label text="StudyHub"
+                       styleClass="title-label"/>
+                <Label text="Spravuj študijné skupiny, úlohy a odovzdávky na jednom mieste."
+                       wrapText="true"
+                       maxWidth="260"
+                       styleClass="subtitle-label"/>
+                <VBox spacing="8" styleClass="card">
+                    <Label text="Features" styleClass="section-header"/>
+                    <Label text="- Tvorba skupín a úloh" styleClass="subtitle-label"/>
+                    <Label text="- Odovzdávanie riešení" styleClass="subtitle-label"/>
+                    <Label text="- Aktivity log a prehľad" styleClass="subtitle-label"/>
+                </VBox>
+            </VBox>
 
-            <TabPane>
-                <tabs>
-                    <Tab text="Login">
-                        <content>
-                            <VBox spacing="8" alignment="CENTER_LEFT">
-                                <Label text="Email:"/>
-                                <TextField fx:id="loginEmailField" promptText="email"/>
+            <!-- Right: card with tabs -->
+            <StackPane HBox.hgrow="ALWAYS">
+                <VBox styleClass="card" spacing="14">
+                    <TabPane fx:id="tabPane">
+                        <tabs>
+                            <Tab text="Prihlásenie" closable="false">
+                                <content>
+                                    <VBox spacing="10">
+                                        <Label text="E-mail"
+                                               styleClass="subtitle-label"/>
+                                        <TextField fx:id="loginEmailField"
+                                                   promptText="tvoj@email.com"/>
 
-                                <Label text="Password:"/>
-                                <PasswordField fx:id="loginPasswordField" promptText="password"/>
+                                        <Label text="Heslo"
+                                               styleClass="subtitle-label"/>
+                                        <PasswordField fx:id="loginPasswordField"
+                                                       promptText="••••••••"/>
 
-                                <Button text="Login" onAction="#onLogin"/>
-                            </VBox>
-                        </content>
-                    </Tab>
+                                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                                            <ProgressIndicator fx:id="progressIndicator"
+                                                               visible="false"
+                                                               prefWidth="20"
+                                                               prefHeight="20"/>
+                                            <Region HBox.hgrow="ALWAYS"/>
+                                            <Button text="Prihlásiť sa"
+                                                    fx:id="loginButton"
+                                                    onAction="#onLogin"
+                                                    styleClass="primary-button"/>
+                                        </HBox>
+                                    </VBox>
+                                </content>
+                            </Tab>
 
-                    <Tab text="Register">
-                        <content>
-                            <VBox spacing="8" alignment="CENTER_LEFT">
-                                <Label text="Name:"/>
-                                <TextField fx:id="regNameField" promptText="name"/>
+                            <Tab text="Registrácia" closable="false">
+                                <content>
+                                    <VBox spacing="10">
+                                        <Label text="Meno"
+                                               styleClass="subtitle-label"/>
+                                        <TextField fx:id="registerNameField"
+                                                   promptText="Ako ťa volajú?"/>
 
-                                <Label text="Email:"/>
-                                <TextField fx:id="regEmailField" promptText="email"/>
+                                        <Label text="E-mail"
+                                               styleClass="subtitle-label"/>
+                                        <TextField fx:id="registerEmailField"
+                                                   promptText="novy@email.com"/>
 
-                                <Label text="Password:"/>
-                                <PasswordField fx:id="regPasswordField" promptText="password"/>
+                                        <Label text="Heslo"
+                                               styleClass="subtitle-label"/>
+                                        <PasswordField fx:id="registerPasswordField"
+                                                       promptText="Silné heslo"/>
 
-                                <Button text="Register" onAction="#onRegister"/>
-                            </VBox>
-                        </content>
-                    </Tab>
-                </tabs>
-            </TabPane>
+                                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                                            <Region HBox.hgrow="ALWAYS"/>
+                                            <Button text="Vytvoriť účet"
+                                                    fx:id="registerButton"
+                                                    onAction="#onRegister"
+                                                    styleClass="primary-button"/>
+                                        </HBox>
+                                    </VBox>
+                                </content>
+                            </Tab>
+                        </tabs>
+                    </TabPane>
 
-            <Label fx:id="statusLabel" textFill="red"/>
-
-        </VBox>
+                    <Label fx:id="statusLabel"
+                           text=""
+                           styleClass="error-label"/>
+                </VBox>
+            </StackPane>
+        </HBox>
     </center>
+
 </BorderPane>

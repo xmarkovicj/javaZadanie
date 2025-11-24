@@ -76,4 +76,18 @@ public class MembershipService {
         }
         return false;
     }
+    public boolean removeMember(Long groupId, Long userId) {
+        StudyGroup group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new RuntimeException("Group not found: " + groupId));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+
+        return membershipRepository.findByUserAndGroup(user, group)
+                .map(m -> {
+                    membershipRepository.delete(m);
+                    return true;
+                })
+                .orElse(false);
+    }
 }

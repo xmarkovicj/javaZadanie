@@ -1,11 +1,18 @@
 package com.markovic.javazadanie.fx;
 
+import com.markovic.javazadanie.fx.dto.UserDto;
+import com.markovic.javazadanie.fx.dto.LoginResponseDto;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.stage.Stage;
 
+/**
+ * Controller pre login obrazovku.
+ */
 public class LoginController {
 
     @FXML
@@ -15,96 +22,94 @@ public class LoginController {
     private PasswordField loginPasswordField;
 
     @FXML
-    private TextField regNameField;
-
-    @FXML
-    private TextField regEmailField;
-
-    @FXML
-    private PasswordField regPasswordField;
-
-    @FXML
     private Label statusLabel;
 
     private final AuthApiClient authApiClient = new AuthApiClient();
 
-    // sem si môžeš uložiť token po logine (neskôr ho využijeme v ďalších requestoch)
-    private static String jwtToken;
-
     @FXML
     public void initialize() {
-        statusLabel.setText("");
+        if (statusLabel != null) {
+            statusLabel.setText("");
+        }
     }
 
     @FXML
     private void onLogin() {
-        String email = loginEmailField.getText();
-        String password = loginPasswordField.getText();
+        if (statusLabel != null) {
+            statusLabel.setStyle("-fx-text-fill: -fx-text-base-color;");
+            statusLabel.setText("Prihlasujem...");
+        }
 
-        statusLabel.setText("");
+        String email = loginEmailField.getText() != null ? loginEmailField.getText().trim() : "";
+        String password = loginPasswordField.getText() != null ? loginPasswordField.getText().trim() : "";
+
+        if (email.isEmpty() || password.isEmpty()) {
+            if (statusLabel != null) {
+                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setText("Zadaj email aj heslo.");
+            }
+            return;
+        }
 
         new Thread(() -> {
             try {
+                // predpokladám, že máš niečo ako LoginResponseDto { String token; UserDto user; }
                 String token = authApiClient.login(email, password);
-                jwtToken = token;
+                SessionManager.getInstance().setToken(token);
+                SessionManager.getInstance().setCurrentUser(new UserDto()); // alebo null, ak nemáš dáta o userovi
 
+                Platform.runLater(() -> openDashboard());
+            } catch (Exception e) {
+                e.printStackTrace();
                 Platform.runLater(() -> {
-                    statusLabel.setStyle("-fx-text-fill: green;");
-                    statusLabel.setText("Login successful!");
-
-                    try {
-                        // načítaj dashboard.fxml
-                        javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
-                                getClass().getResource("/fxml/dashboard.fxml")
-                        );
-                        javafx.scene.Scene scene = new javafx.scene.Scene(loader.load());
-
-                        javafx.stage.Stage stage =
-                                (javafx.stage.Stage) loginEmailField.getScene().getWindow();
-                        stage.setScene(scene);
-                        stage.setTitle("Study Platform - Dashboard");
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
+                    if (statusLabel != null) {
                         statusLabel.setStyle("-fx-text-fill: red;");
-                        statusLabel.setText("Failed to open dashboard: " + ex.getMessage());
+                        statusLabel.setText("Prihlásenie zlyhalo: " + e.getMessage());
                     }
                 });
-            } catch (Exception e) {
-                e.printStackTrace();
-                Platform.runLater(() -> {
-                    statusLabel.setStyle("-fx-text-fill: red;");
-                    statusLabel.setText("Login failed: " + e.getMessage());
-                });
             }
         }).start();
     }
 
+    private void openDashboard() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/dashboard.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = (Stage) loginEmailField.getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Study Platform - Dashboard");
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (statusLabel != null) {
+                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setText("Nepodarilo sa otvoriť dashboard: " + e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Ak máš v login.fxml nejaký "Register" button s onAction="#onOpenRegister"
+     */
     @FXML
     private void onRegister() {
-        String name = regNameField.getText();
-        String email = regEmailField.getText();
-        String password = regPasswordField.getText();
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/register.fxml"));
+            Parent root = loader.load();
 
-        statusLabel.setText("");
-
-        new Thread(() -> {
-            try {
-                authApiClient.register(name, email, password);
-                Platform.runLater(() -> {
-                    statusLabel.setStyle("-fx-text-fill: green;");
-                    statusLabel.setText("Registration successful, you can log in now.");
-                });
-            } catch (Exception e) {
-                e.printStackTrace();
-                Platform.runLater(() -> {
-                    statusLabel.setStyle("-fx-text-fill: red;");
-                    statusLabel.setText("Registration failed: " + e.getMessage());
-                });
+            Stage stage = (Stage) loginEmailField.getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Study Platform - Register");
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (statusLabel != null) {
+                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setText("Nepodarilo sa otvoriť registráciu: " + e.getMessage());
             }
-        }).start();
-    }
-
-    public static String getJwtToken() {
-        return jwtToken;
+        }
     }
 }

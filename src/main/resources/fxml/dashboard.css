@@ -1,0 +1,40 @@
+/* dashboard.css (ukážka) */
+
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-background-color: #f3f4f6;
+}
+
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.15), 12, 0, 0, 4);
+}
+
+.title-label {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #111827;
+}
+
+.subtitle-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #6b7280;
+}
+
+.primary-button {
+    -fx-background-color: #2563eb;
+    -fx-text-fill: white;
+    -fx-padding: 6 16 6 16;
+    -fx-background-radius: 8;
+    -fx-font-weight: 600;
+}
+
+.primary-button:hover {
+    -fx-background-color: #1d4ed8;
+}
+
+.status-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #ef4444; /* červená pre error; môžeš zmeniť na sivú */
+}

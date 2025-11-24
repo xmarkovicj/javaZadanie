@@ -5,6 +5,7 @@ public class TaskItem {
     private Long id;
     private String title;
     private String description;
+    private String status;
     private String dueDate; // zobrazíme ako string, backend pošle ISO dátum
 
     public TaskItem() {
@@ -16,7 +17,13 @@ public class TaskItem {
         this.description = description;
         this.dueDate = dueDate;
     }
+    public String getStatus() {
+        return status;
+    }
 
+    public void setStatus(String status) {
+        this.status = status;
+    }
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
