@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns="http://javafx.com/javafx/11.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.markovic.javazadanie.fx.LogsController"
+            stylesheets="@logs.css">
+
+    <!-- TOP: header + filter -->
+    <top>
+        <VBox spacing="8.0">
+            <padding>
+                <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
+            </padding>
+
+            <Label text="Activity log"
+                   styleClass="title-label"/>
+
+            <HBox spacing="8.0" alignment="CENTER_LEFT">
+                <TextField fx:id="searchField"
+                           promptText="Filter by text (action, user, details)"/>
+                <ComboBox fx:id="actionFilter"
+                          promptText="Action type"
+                          prefWidth="160.0"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Refresh"
+                        onAction="#onRefresh"
+                        styleClass="primary-button"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <!-- CENTER: table -->
+    <center>
+            <TableView fx:id="logsTable">
+                <columns>
+                    <TableColumn fx:id="colType"        text="Action"  prefWidth="140.0"/>
+                    <TableColumn fx:id="colUser"        text="User"    prefWidth="180.0"/>
+                    <TableColumn fx:id="colTime"        text="Time"    prefWidth="170.0"/>
+                    <TableColumn fx:id="colDescription" text="Details" prefWidth="400.0"/>
+                </columns>
+            </TableView>
+    </center>
+
+
+    <!-- BOTTOM: status bar -->
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" spacing="8.0">
+            <padding>
+                <Insets top="6.0" right="10.0" bottom="6.0" left="10.0"/>
+            </padding>
+
+            <Label fx:id="statusLabel"
+                   text="No logs loaded"
+                   styleClass="status-label"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

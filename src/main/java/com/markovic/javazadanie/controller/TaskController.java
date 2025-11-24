@@ -1,12 +1,19 @@
 package com.markovic.javazadanie.controller;
 
 import com.markovic.javazadanie.model.Task;
+import com.markovic.javazadanie.model.User;
 import com.markovic.javazadanie.service.TaskService;
+
+import com.markovic.javazadanie.service.UserService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -18,13 +25,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TaskController {
     private final TaskService taskService;
+    private final UserService userService;
 
     //CREATE
     @PostMapping
     public ResponseEntity<Task> create(@Valid @RequestBody CreateTaskRequest req){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+        User creator = userService.findByEmail(email).orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
         Task t = taskService.create(
                 req.getGroupId(),
-                req.getCreatedBy(),
+                creator.getId(),
                 req.getTitle(),
                 req.getDescription(),
                 req.getStatus(),
@@ -72,8 +84,6 @@ public class TaskController {
     public static class CreateTaskRequest {
         @NotNull
         private Long groupId;         // FK -> groups.group_id
-        @NotNull
-        private Long createdBy;       // FK -> users.id
         @NotNull
         private String title;
         private String description;

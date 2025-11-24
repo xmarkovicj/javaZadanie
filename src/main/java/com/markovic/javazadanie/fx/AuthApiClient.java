@@ -32,8 +32,13 @@ public class AuthApiClient {
 
         if (response.statusCode() == 200) {
             JsonNode node = objectMapper.readTree(response.body());
-            // predpokladám, že vraciaš {"token": "..."}
-            return node.get("token").asText();
+            String token = node.get("token").asText();
+
+            // uložíme token do SessionManagera
+            SessionManager.getInstance().setToken(token);
+            SessionManager.getInstance().setUserEmail(email);
+
+            return token;
         } else {
             throw new RuntimeException("Login failed: " + response.statusCode() + " " + response.body());
         }

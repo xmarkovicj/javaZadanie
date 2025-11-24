@@ -63,7 +63,7 @@ public class AuthController {
             String jwt = jwtUtil.generateToken(((UserDetails) auth.getPrincipal()).getUsername());
 
             // nájdeme usera kvôli logu
-            User user = userRepository.findByEmail(req.getEmail());
+            User user = userRepository.findByEmail(req.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
             if (user != null) {
                 activityLogService.log(
                         user.getId(),
@@ -76,7 +76,7 @@ public class AuthController {
 
         } catch (AuthenticationException ex) {
             // ak existuje user s týmto emailom, zalogujeme neúspešný pokus
-            User user = userRepository.findByEmail(req.getEmail());
+            User user = userRepository.findByEmail(req.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
             if (user != null) {
                 activityLogService.log(
                         user.getId(),

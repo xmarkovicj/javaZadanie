@@ -1,0 +1,73 @@
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+    -fx-background-color: #f5f7fb;
+}
+
+/* Nadpis */
+.label.title-label {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #233044;
+}
+
+/* Status dole */
+.label.status-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #7a869a;
+}
+
+/* Tlačidlo Refresh */
+.button.primary-button {
+    -fx-background-color: #4f6bed;
+    -fx-text-fill: white;
+    -fx-font-weight: 600;
+    -fx-padding: 6 14 6 14;
+    -fx-background-radius: 6;
+}
+
+.button.primary-button:hover {
+    -fx-background-color: #3c54d4;
+}
+
+/* TextField a ComboBox */
+.text-field, .combo-box-base {
+    -fx-background-radius: 6;
+    -fx-background-color: white;
+    -fx-border-color: #d1d5e5;
+    -fx-border-radius: 6;
+}
+
+/* Tabuľka */
+.table-view {
+    -fx-background-color: white;
+    -fx-border-color: #d1d5e5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #eef1fb;
+}
+
+.table-view .column-header,
+.table-view .filler {
+    -fx-size: 30px;
+}
+
+.table-view .column-header .label {
+    -fx-font-weight: 600;
+    -fx-text-fill: #233044;
+}
+
+/* Striedavé riadky */
+.table-row-cell:odd {
+    -fx-background-color: #f9fafc;
+}
+
+.table-row-cell:even {
+    -fx-background-color: white;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #cdd5ff;
+}

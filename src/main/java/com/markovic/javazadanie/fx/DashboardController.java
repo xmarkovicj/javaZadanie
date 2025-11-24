@@ -4,12 +4,23 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+
+import java.io.IOException;
+
 
 public class DashboardController {
 
     @FXML
     private TableView<StudyGroupItem> groupsTable;
+
+    @FXML
+    private BorderPane dashboardRoot;
 
     @FXML
     private TableColumn<StudyGroupItem, Number> colId;
@@ -75,6 +86,35 @@ public class DashboardController {
             });
         });
     }
+    @FXML
+    private void onOpenGroup() {
+        StudyGroupItem selected = groupsTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            statusLabel.setStyle("-fx-text-fill: red;");
+            statusLabel.setText("Please select a group first.");
+            return;
+        }
+
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/fxml/group_detail.fxml")
+            );
+            javafx.scene.Parent root = loader.load();
+
+            GroupDetailController controller = loader.getController();
+            controller.initData(selected, LoginController.getJwtToken());
+
+            javafx.stage.Stage stage = (javafx.stage.Stage) groupsTable.getScene().getWindow();
+            stage.setScene(new javafx.scene.Scene(root));
+            stage.setTitle("Group detail - " + selected.getName());
+        } catch (Exception e) {
+            e.printStackTrace();
+            statusLabel.setStyle("-fx-text-fill: red;");
+            statusLabel.setText("Failed to open group: " + e.getMessage());
+        }
+    }
+
+
 
     private void loadGroups() {
         statusLabel.setText("Loading groups...");
@@ -130,4 +170,39 @@ public class DashboardController {
             }
         }).start();
     }
+    @FXML
+    private void openLogs() {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/fxml/logs.fxml")
+            );
+            javafx.scene.Parent root = loader.load();
+
+            Stage stage = new Stage();
+            stage.setTitle("Systémové logy");
+            stage.setScene(new Scene(root));
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    @FXML
+    private void openUsers() {
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/users.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = new Stage();
+            stage.setTitle("Users");
+            stage.setScene(new Scene(root));
+            stage.initOwner(dashboardRoot.getScene().getWindow()); // ak máš root pre dashboard
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            // prípadne nejaký alert
+        }
+    }
+
+
 }

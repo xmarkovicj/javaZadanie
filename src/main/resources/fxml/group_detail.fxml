@@ -4,28 +4,26 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<?import javafx.scene.chart.BubbleChart?>
-<BorderPane fx:id="dashboardRoot"
-            xmlns="http://javafx.com/javafx/11.0.2"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.markovic.javazadanie.fx.DashboardController">
-
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.markovic.javazadanie.fx.GroupDetailController">
 
     <top>
         <HBox spacing="10" alignment="CENTER_LEFT">
             <padding>
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
-            <Label text="Study Platform - Dashboard"
+
+            <Button text="← Back" onAction="#onBack"/>
+
+            <Label fx:id="groupNameLabel"
+                   text="Group name"
                    style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
 
             <Pane HBox.hgrow="ALWAYS"/>
-            <Button text="Open group" onAction="#onOpenGroup"/>
-            <Button text="Refresh" onAction="#onRefresh"/>
-            <Button text="New Group" onAction="#onNewGroup"/>
-            <Button text="Logy" onAction="#openLogs"/>
-            <Button text="Users" onAction="#openUsers"/>
-
+            <Button text="Open task" onAction="#onOpenTask"/>
+            <Button text="Refresh tasks" onAction="#onRefreshTasks"/>
+            <Button text="New task" onAction="#onNewTask"/>
         </HBox>
     </top>
 
@@ -35,11 +33,12 @@
                 <Insets top="10" right="10" bottom="10" left="10"/>
             </padding>
 
-            <TableView fx:id="groupsTable" prefHeight="400">
+            <TableView fx:id="tasksTable" prefHeight="400">
                 <columns>
-                    <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
-                    <TableColumn fx:id="colName" text="Name" prefWidth="200"/>
+                    <TableColumn fx:id="colTaskId" text="ID" prefWidth="60"/>
+                    <TableColumn fx:id="colTitle" text="Title" prefWidth="200"/>
                     <TableColumn fx:id="colDescription" text="Description" prefWidth="300"/>
+                    <TableColumn fx:id="colDueDate" text="Due date" prefWidth="150"/>
                 </columns>
             </TableView>
 

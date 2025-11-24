@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.markovic.javazadanie.fx.TaskDetailController">
+
+    <top>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Button text="← Back" onAction="#onBack"/>
+                <Label fx:id="taskTitleLabel"
+                       text="Task title"
+                       style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+            </HBox>
+
+            <Label fx:id="taskDescriptionLabel" wrapText="true"/>
+            <HBox spacing="20">
+                <Label fx:id="taskDeadlineLabel"/>
+                <Label fx:id="taskStatusLabel"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Submissions" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <Pane HBox.hgrow="ALWAYS"/>
+                <Button text="Refresh" onAction="#onRefreshSubmissions"/>
+                <Button text="Submit solution" onAction="#onSubmitSolution"/>
+            </HBox>
+
+            <TableView fx:id="submissionsTable" prefHeight="350">
+                <columns>
+                    <TableColumn fx:id="colSubmissionId" text="ID" prefWidth="60"/>
+                    <TableColumn fx:id="colUserEmail" text="User" prefWidth="200"/>
+                    <TableColumn fx:id="colContent" text="Content" prefWidth="300"/>
+                    <TableColumn fx:id="colSubmittedAt" text="Submitted at" prefWidth="160"/>
+                    <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
+                    <TableColumn fx:id="colGrade" text="Grade" prefWidth="80"/>
+                </columns>
+            </TableView>
+
+            <Label fx:id="statusLabel" textFill="red"/>
+        </VBox>
+    </center>
+</BorderPane>

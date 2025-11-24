@@ -44,6 +44,9 @@ public class UserService {
             return userRepository.save(existingUser);
         });
     }
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
 
     public boolean deleteUser(Long id) {
         if(userRepository.existsById(id)){
@@ -54,7 +57,7 @@ public class UserService {
     }
 
     public User login(String email, String rawPassword) {
-        User user = userRepository.findByEmail(email);
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
         if(user == null){
             throw new RuntimeException("User not found");
         }

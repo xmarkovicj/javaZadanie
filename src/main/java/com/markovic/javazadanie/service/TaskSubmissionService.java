@@ -21,7 +21,7 @@ public class TaskSubmissionService {
     private final TaskSubmissionRepository submissionRepository;
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
-    private final ActivityLogService activityLogService;   // 👈 pridali sme
+    private final ActivityLogService activityLogService;
 
     public TaskSubmission create(Long taskId, Long userId,
                                  String content, String attachmentUrl) {
@@ -60,6 +60,11 @@ public class TaskSubmissionService {
     public List<TaskSubmission> getAll() {
         return submissionRepository.findAll();
     }
+    public Optional<TaskSubmission> findByTaskAndUser(Long taskId, Long userId) {
+        return submissionRepository.findByTask_TaskIdAndUser_Id(taskId, userId);
+    }
+
+
 
     public Optional<TaskSubmission> getById(Long id) {
         return submissionRepository.findById(id);

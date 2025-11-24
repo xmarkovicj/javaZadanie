@@ -1,16 +1,25 @@
 package com.markovic.javazadanie.controller;
 
 import com.markovic.javazadanie.model.TaskSubmission;
+import com.markovic.javazadanie.model.User;
 import com.markovic.javazadanie.service.TaskSubmissionService;
+import com.markovic.javazadanie.service.UserService;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
+
 
 @RestController
 @RequestMapping("/api/submissions")
@@ -18,18 +27,32 @@ import java.util.List;
 public class TaskSubmissionController {
 
     private final TaskSubmissionService submissionService;
+    private final UserService userService;
 
     // CREATE (odovzdanie úlohy)
     @PostMapping
-    public ResponseEntity<TaskSubmission> create(@Valid @RequestBody CreateSubmissionRequest req) {
-        TaskSubmission s = submissionService.create(
+    public ResponseEntity<TaskSubmission> create(@Valid @RequestBody CreateSubmissionRequest req,
+                                                 @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userService.findByEmail(userDetails.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        TaskSubmission submission = submissionService.create(
                 req.getTaskId(),
-                req.getUserId(),
+                user.getId(),               // sem dáme id prihláseného usera
                 req.getContent(),
-                req.getAttachmentUrl()
+                "PENDING"
         );
-        return ResponseEntity.ok(s);
+
+        return ResponseEntity.ok(submission);
     }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException ex) {
+        Map<String, String> body = new HashMap<>();
+        body.put("error", ex.getMessage());
+        return ResponseEntity.status(409).body(body);
+    }
+
 
     // READ ALL
     @GetMapping
@@ -73,6 +96,18 @@ public class TaskSubmissionController {
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();
     }
+    @GetMapping("/my")
+    public ResponseEntity<TaskSubmission> getMySubmission(
+            @RequestParam Long taskId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        User user = userService.findByEmail(userDetails.getUsername()).orElseThrow(() -> new RuntimeException("User not found"));
+
+        return submissionService.findByTaskAndUser(taskId, user.getId())
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 
     // DTOs
     @Data
@@ -80,8 +115,6 @@ public class TaskSubmissionController {
         @NotNull
         private Long taskId;
 
-        @NotNull
-        private Long userId;
 
         @NotBlank
         private String content;
