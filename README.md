@@ -8,6 +8,29 @@ Tento repozitár obsahuje **plnohodnotnú semestrálnu aplikáciu** zloženú z:
 
 Projekt je navrhnutý ako systém na správu **študijných skupín, úloh, odovzdaní, komentárov a zdrojov**.
 
+
+An F-14 Tomcat
+                                   ,
+                                 _-|
+                                [  |      _-|
+                               ]   |     [  |
+                    _,.-'^[/-._[   |    ]   |
+                   /     ]    ]_.-' \_  [   |
+                 .'___   [          ' ']_.-'\_._
+                /     `-"     _           __'.-='^|-.
+               /        __.,-     __,.-='^      _/.-'
+             .'    _.,-'  /       \    =0= _,.-'
+            /  _.-'_-'  .'        /  _,.-'^
+           /_-'\_-'  _-'        _/-'^
+        _-'"\_-'  _-'     _,.-'^0"0
+       /  _-'  _-'  _,.-_^'
+    _-'`-'    '-,='_\.-'
+  .'         _-'
+ /`\     _,i|
+/__,|=-'^ 0"0
+
+
+
 ---
 
 ## 🧱 Použité technológie
