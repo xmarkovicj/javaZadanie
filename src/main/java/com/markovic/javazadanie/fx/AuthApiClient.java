@@ -14,6 +14,9 @@ public class AuthApiClient {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * Zavolá POST /api/auth/login, naplní SessionManager a vráti JWT token.
+     */
     public String login(String email, String password) throws Exception {
         // JSON body
         String json = objectMapper.createObjectNode()
@@ -32,15 +35,33 @@ public class AuthApiClient {
 
         if (response.statusCode() == 200) {
             JsonNode node = objectMapper.readTree(response.body());
-            String token = node.get("token").asText();
 
-            // uložíme token do SessionManagera
-            SessionManager.getInstance().setToken(token);
-            SessionManager.getInstance().setUserEmail(email);
+            // token z LoginResponseDto
+            String token = node.path("token").asText(null);
+            if (token == null || token.isBlank()) {
+                throw new RuntimeException("Login failed: token missing in response: " + response.body());
+            }
+
+            // userId z LoginResponseDto (ak je)
+            if (node.hasNonNull("userId")) {
+                long userId = node.get("userId").asLong();
+                SessionManager.getInstance().setUserId(userId);
+            }
+
+            // email z LoginResponseDto (ak je), inak použijeme ten z formulára
+            String respEmail = email;
+            if (node.hasNonNull("email")) {
+                respEmail = node.get("email").asText();
+            }
+
+            SessionManager sm = SessionManager.getInstance();
+            sm.setToken(token);
+            sm.setUserEmail(respEmail);
 
             return token;
         } else {
-            throw new RuntimeException("Login failed: " + response.statusCode() + " " + response.body());
+            throw new RuntimeException("Login failed: "
+                    + response.statusCode() + " " + response.body());
         }
     }
 
@@ -61,7 +82,8 @@ public class AuthApiClient {
                 httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200 && response.statusCode() != 201) {
-            throw new RuntimeException("Register failed: " + response.statusCode() + " " + response.body());
+            throw new RuntimeException("Register failed: "
+                    + response.statusCode() + " " + response.body());
         }
     }
 }

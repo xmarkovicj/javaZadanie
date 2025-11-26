@@ -7,8 +7,12 @@ import com.markovic.javazadanie.model.User;
 import com.markovic.javazadanie.repository.StudyGroupRepository;
 import com.markovic.javazadanie.repository.TaskRepository;
 import com.markovic.javazadanie.repository.UserRepository;
+import com.markovic.javazadanie.websocket.TaskWebSocketHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.markovic.javazadanie.model.TaskStatus;
+import com.markovic.javazadanie.dto.TaskUpdateDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +26,8 @@ public class TaskService {
     private final StudyGroupRepository groupRepository;
     private final UserRepository userRepository;
     private final ActivityLogService activityLogService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final TaskWebSocketHandler taskWebSocketHandler;
 
     public Task create(Long groupId, Long createdByUserId, String title, String description,
                        String status, LocalDateTime deadline) {
@@ -37,12 +43,13 @@ public class TaskService {
                 .createdBy(creator)
                 .title(title)
                 .description(description)
-                .status(status != null ? status : "OPEN")
+                .status( TaskStatus.OPEN)
                 .deadline(deadline)
                 .createdAt(LocalDateTime.now())
                 .build();
 
         Task saved = taskRepository.save(t);
+        taskWebSocketHandler.broadcast("NEW_TASK_CREATED: "+ t.getTitle());
 
         activityLogService.log(
                 createdByUserId,
@@ -67,25 +74,27 @@ public class TaskService {
         return taskRepository.findByGroup(g);
     }
 
-    public Optional<Task> update(Long taskId, String title, String description,
-                                 String status, LocalDateTime deadline) {
+    // v TaskService
+
+    public Optional<Task> update(Long taskId, TaskUpdateDto dto) {
         return taskRepository.findById(taskId).map(t -> {
-            if (title != null) t.setTitle(title);
-            if (description != null) t.setDescription(description);
-            if (status != null) t.setStatus(status);
-            t.setDeadline(deadline);
+            if (dto.getTitle() != null) {
+                t.setTitle(dto.getTitle());
+            }
+            if (dto.getDescription() != null) {
+                t.setDescription(dto.getDescription());
+            }
+            if (dto.getDeadline() != null) {
+                t.setDeadline(dto.getDeadline());
+            }
+            if (dto.getStatus() != null) {
+                t.setStatus(TaskStatus.valueOf(dto.getStatus()));
+            }
 
-            Task updated = taskRepository.save(t);
-
-            activityLogService.log(
-                    t.getCreatedBy().getId(),
-                    ActivityAction.TASK_UPDATED,
-                    "Task #" + updated.getTaskId() + " updated"
-            );
-
-            return updated;
+            return taskRepository.save(t);
         });
     }
+
 
     public boolean delete(Long id) {
         return taskRepository.findById(id).map(t -> {
@@ -95,7 +104,25 @@ public class TaskService {
                     ActivityAction.TASK_DELETED,
                     "Task #" + t.getTaskId() + " deleted"
             );
+            taskWebSocketHandler.broadcast("TASK_DELETED: " + t.getTaskId());
             return true;
         }).orElse(false);
     }
+
+    public void closeExpiredTasks() {
+        List<Task> tasks = taskRepository.findAll();
+        LocalDateTime now = LocalDateTime.now();
+
+        for (Task t : tasks) {
+            if (t.getDeadline() != null
+                    && t.getDeadline().isBefore(now)
+                    && t.getStatus() != TaskStatus.CLOSED) {
+
+                t.setStatus(TaskStatus.CLOSED);
+                taskRepository.save(t);
+            }
+        }
+    }
+
+
 }

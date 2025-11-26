@@ -6,24 +6,27 @@ public class TaskItem {
     private String title;
     private String description;
     private String status;
-    private String dueDate; // zobrazíme ako string, backend pošle ISO dátum
+    private String dueDate;   // ISO string
+    private String createdBy; // email alebo meno autora
 
     public TaskItem() {
     }
 
-    public TaskItem(Long id, String title, String description, String dueDate) {
+    public TaskItem(Long id, String title, String description, String dueDate, String createdBy) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.dueDate = dueDate;
+        this.createdBy = createdBy;
     }
+
     public String getStatus() {
         return status;
     }
-
     public void setStatus(String status) {
         this.status = status;
     }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -35,4 +38,11 @@ public class TaskItem {
 
     public String getDueDate() { return dueDate; }
     public void setDueDate(String dueDate) { this.dueDate = dueDate; }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
 }

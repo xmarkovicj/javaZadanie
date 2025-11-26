@@ -14,7 +14,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
+import com.markovic.javazadanie.dto.TaskUpdateDto;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -66,9 +66,12 @@ public class TaskController {
     }
 
     // UPDATE (title/description/status/deadline)
-    @PutMapping("/{id}")
-    public ResponseEntity<Task> update(@Valid @PathVariable Long id,@Valid @RequestBody UpdateTaskRequest req) {
-        return taskService.update(id, req.getTitle(), req.getDescription(), req.getStatus(), req.getDeadline())
+    @PutMapping("/{taskId}")
+    public ResponseEntity<Task> updateTask(
+            @PathVariable Long taskId,
+            @RequestBody TaskUpdateDto dto
+    ) {
+        return taskService.update(taskId, dto)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

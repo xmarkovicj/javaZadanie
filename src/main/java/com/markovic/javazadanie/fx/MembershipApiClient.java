@@ -1,114 +1,154 @@
 package com.markovic.javazadanie.fx;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.markovic.javazadanie.fx.dto.MemberDto;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MembershipApiClient {
 
     private static final String BASE_URL = "http://localhost:8080/api/groups";
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // volá existujúci backendový endpoint:
-    // POST /api/groups/{groupId}/members/{userId}
-    public void joinGroup(String token, Long groupId) {
-        Long userId = SessionManager.getInstance().getUserId();
-        if (userId == null) {
-            throw new RuntimeException("No userId in SessionManager – set it after login.");
+    public void joinGroup(String jwtToken, Long groupId) throws Exception {
+        if (jwtToken == null || jwtToken.isBlank()) {
+            throw new RuntimeException("No JWT token – user is not logged in.");
         }
 
-        HttpURLConnection conn = null;
-        try {
-            URL url = new URL(BASE_URL + "/" + groupId + "/members/" + userId);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Accept", "application/json");
-            conn.setRequestProperty("Authorization", "Bearer " + token);
-            conn.setDoOutput(false); // role posielaš ako body len ak chceš, my pošleme null
+        URL url = new URL(BASE_URL + "/" + groupId + "/join");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Authorization", "Bearer " + jwtToken);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setDoOutput(true); // aj keď neposielame body, POST to zvykne brať lepšie
 
-            int status = conn.getResponseCode();
-            if (status >= 200 && status < 300) {
-                return; // OK, člen pridaný
+        int code = conn.getResponseCode();
+
+        if (code == 200 || code == 201) {
+            // všetko ok – členstvo vytvorené
+            conn.disconnect();
+            return;
+        }
+
+        // načítame error body, aby si videl dôvod
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(conn.getErrorStream() != null ?
+                        conn.getErrorStream() :
+                        conn.getInputStream())
+        )) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
             }
-
-            InputStream err = conn.getErrorStream();
-            String body = err != null ? new String(err.readAllBytes(), StandardCharsets.UTF_8) : "";
-            throw new RuntimeException("Join failed: " + status + " " + body);
-
-        } catch (IOException e) {
-            throw new RuntimeException("Join failed", e);
+            throw new RuntimeException("Join failed: " + code + " " + sb);
         } finally {
-            if (conn != null) conn.disconnect();
+            conn.disconnect();
         }
     }
 
-    // DELETE /api/groups/{groupId}/members/{userId}
-    public void leaveGroup(String token, Long groupId) {
-        Long userId = SessionManager.getInstance().getUserId();
-        if (userId == null) {
-            throw new RuntimeException("No userId in SessionManager – set it after login.");
+    // LEAVE aktuálne prihláseného používateľa
+    public void leaveGroup(String jwtToken, Long groupId) throws Exception {
+        if (jwtToken == null || jwtToken.isBlank()) {
+            throw new RuntimeException("No JWT token – user is not logged in.");
         }
 
-        HttpURLConnection conn = null;
-        try {
-            URL url = new URL(BASE_URL + "/" + groupId + "/members/" + userId);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("DELETE");
-            conn.setRequestProperty("Accept", "application/json");
-            conn.setRequestProperty("Authorization", "Bearer " + token);
+        URL url = new URL(BASE_URL + "/" + groupId + "/leave");
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Authorization", "Bearer " + jwtToken);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setDoOutput(true);
 
-            int status = conn.getResponseCode();
-            if (status == HttpURLConnection.HTTP_NO_CONTENT || status == HttpURLConnection.HTTP_OK) {
-                return; // OK, člen odobratý
+        int code = conn.getResponseCode();
+        if (code == 200 || code == 204) {
+            conn.disconnect();
+            return;
+        }
+
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(conn.getErrorStream() != null ?
+                        conn.getErrorStream() :
+                        conn.getInputStream())
+        )) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line);
             }
-
-            InputStream err = conn.getErrorStream();
-            String body = err != null ? new String(err.readAllBytes(), StandardCharsets.UTF_8) : "";
-            throw new RuntimeException("Leave failed: " + status + " " + body);
-
-        } catch (IOException e) {
-            throw new RuntimeException("Leave failed", e);
+            throw new RuntimeException("Leave failed: " + code + " " + sb);
         } finally {
-            if (conn != null) conn.disconnect();
+            conn.disconnect();
         }
     }
 
-    // GET /api/groups/{groupId}/members
-    public List<MemberDto> getMembers(String token, Long groupId) {
-        HttpURLConnection conn = null;
+    public List<MemberDto> getMembers(String jwt, Long groupId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/" + groupId + "/members"))
+                .header("Authorization", "Bearer " + jwt)
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Failed to load members");
+        }
+
+        String body = response.body();
+
         try {
-            URL url = new URL(BASE_URL + "/" + groupId + "/members");
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Accept", "application/json");
-            conn.setRequestProperty("Authorization", "Bearer " + token);
+            JsonNode root = objectMapper.readTree(body);
+            List<MemberDto> result = new ArrayList<>();
 
-            int status = conn.getResponseCode();
-            InputStream is = (status >= 200 && status < 300)
-                    ? conn.getInputStream()
-                    : conn.getErrorStream();
+            if (root.isArray()) {
+                for (JsonNode mNode : root) {
+                    MemberDto dto = new MemberDto();
 
-            String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+                    // membershipId
+                    if (mNode.hasNonNull("membershipId")) {
+                        dto.setMembershipId(mNode.get("membershipId").asLong());
+                    }
 
-            if (status >= 200 && status < 300) {
-                // pozor: backend vracia List<Membership>,
-                // ale my mapujeme na MemberDto – tu budeš možno potrebovať upraviť backend,
-                // aby rovno vracal DTO, alebo prispôsobiť MemberDto poliám Membershipu.
-                return mapper.readValue(body, new TypeReference<List<MemberDto>>() {});
-            } else {
-                throw new RuntimeException("Failed to load members: " + status + " " + body);
+                    // user objekt vo vnútri membershipu
+                    JsonNode userNode = mNode.path("user");
+                    if (userNode.isObject()) {
+                        if (userNode.hasNonNull("id")) {
+                            dto.setId(userNode.get("id").asLong());
+                        }
+                        if (userNode.hasNonNull("name")) {
+                            dto.setName(userNode.get("name").asText());
+                        }
+                        if (userNode.hasNonNull("email")) {
+                            dto.setEmail(userNode.get("email").asText());
+                        }
+                    }
+
+                    // role (je na root úrovni membershipu)
+                    if (mNode.hasNonNull("role")) {
+                        dto.setRole(mNode.get("role").asText());
+                    }
+
+                    result.add(dto);
+                }
             }
-        } catch (IOException e) {
+
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Failed to load members", e);
-        } finally {
-            if (conn != null) conn.disconnect();
         }
     }
 }

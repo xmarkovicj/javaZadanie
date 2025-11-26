@@ -1,95 +1,185 @@
 package com.markovic.javazadanie.fx;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.markovic.javazadanie.fx.dto.UserDto;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
+import java.util.List;
+import java.util.ArrayList;
 public class UserApiClient {
 
     private static final String BASE_URL = "http://localhost:8080/api/users";
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public List<UserDto> getUsers(String token) {
-        try {
-            URL url = new URL(BASE_URL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Accept", "application/json");
-            conn.setRequestProperty("Authorization", "Bearer " + token);
+    // DTO pre JavaFX
+    public static class UserProfile {
+        private Long id;
+        private String name;
+        private String email;
 
-            int status = conn.getResponseCode();
-            InputStream is = (status >= 200 && status < 300)
-                    ? conn.getInputStream()
-                    : conn.getErrorStream();
+        public Long getId() { return id; }
+        public void setId(Long id) { this.id = id; }
 
-            String body = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
 
-            if (status >= 200 && status < 300) {
-                return mapper.readValue(body, new TypeReference<List<UserDto>>() {});
-            } else {
-                throw new RuntimeException("Failed to load users: " + status + " " + body);
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+    }
+
+    // GET /api/users/me
+    public UserProfile getMe(String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/me"))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Failed to load profile: "
+                    + response.statusCode() + " " + response.body());
+        }
+
+        JsonNode node = objectMapper.readTree(response.body());
+
+        UserProfile p = new UserProfile();
+        p.setId(node.has("id") ? node.get("id").asLong() : null);
+        p.setName(node.has("name") ? node.get("name").asText() : "");
+        p.setEmail(node.has("email") ? node.get("email").asText() : "");
+
+        return p;
+    }
+
+    // PUT /api/users/me
+    public UserProfile updateMe(String token,
+                                String name,
+                                String email,
+                                String newPasswordOrNull) throws Exception {
+
+        var body = objectMapper.createObjectNode();
+        body.put("name", name);
+        body.put("email", email);
+
+        // heslo posielame len keď ho user zadal
+        if (newPasswordOrNull != null && !newPasswordOrNull.isBlank()) {
+            body.put("password", newPasswordOrNull);
+        }
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/me"))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(body.toString()))
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Failed to update profile: "
+                    + response.statusCode() + " " + response.body());
+        }
+
+        JsonNode node = objectMapper.readTree(response.body());
+
+        UserProfile p = new UserProfile();
+        p.setId(node.has("id") ? node.get("id").asLong() : null);
+        p.setName(node.has("name") ? node.get("name").asText() : "");
+        p.setEmail(node.has("email") ? node.get("email").asText() : "");
+
+        return p;
+    }
+    public List<UserDto> getUsers(String token) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL))
+                .header("Authorization", "Bearer " + token)
+                .GET()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Failed to load users: "
+                    + response.statusCode() + " " + response.body());
+        }
+
+        List<UserDto> list = new ArrayList<>();
+        JsonNode arr = objectMapper.readTree(response.body());
+
+        if (arr.isArray()) {
+            for (JsonNode node : arr) {
+                UserDto dto = new UserDto();
+                if (node.hasNonNull("id")) {
+                    dto.setId(node.get("id").asLong());
+                }
+                if (node.hasNonNull("name")) {
+                    dto.setName(node.get("name").asText());
+                }
+                if (node.hasNonNull("email")) {
+                    dto.setEmail(node.get("email").asText());
+                }
+                list.add(dto);
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to load users", e);
+        }
+
+        return list;
+    }
+    public UserDto createUser(String token, String name, String email, String password) throws Exception {
+        ObjectNode body = objectMapper.createObjectNode();
+        body.put("name", name);
+        body.put("email", email);
+        body.put("password", password);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL))
+                .header("Authorization", "Bearer " + token)
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200 && response.statusCode() != 201) {
+            throw new RuntimeException("Failed to create user: " +
+                    response.statusCode() + " " + response.body());
+        }
+
+        JsonNode node = objectMapper.readTree(response.body());
+        UserDto dto = new UserDto();
+        dto.setId(node.has("id") ? node.get("id").asLong() : null);
+        dto.setName(node.has("name") ? node.get("name").asText() : "");
+        dto.setEmail(node.has("email") ? node.get("email").asText() : "");
+
+        return dto;
+    }
+    public void deleteUser(String token, Long userId) throws Exception {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/" + userId))
+                .header("Authorization", "Bearer " + token)
+                .DELETE()
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 204 && response.statusCode() != 200) {
+            throw new RuntimeException("Failed to delete user: " +
+                    response.statusCode() + " " + response.body());
         }
     }
 
-    public UserDto createUser(String token, String name, String email, String password) {
-        try {
-            URL url = new URL(BASE_URL);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Accept", "application/json");
-            conn.setRequestProperty("Authorization", "Bearer " + token);
-            conn.setDoOutput(true);
 
-            String json = mapper.createObjectNode()
-                    .put("name", name)
-                    .put("email", email)
-                    .put("password", password)
-                    .toString();
 
-            conn.getOutputStream().write(json.getBytes(StandardCharsets.UTF_8));
-
-            int status = conn.getResponseCode();
-            String body = new String(
-                    (status >= 200 && status < 300 ? conn.getInputStream() : conn.getErrorStream())
-                            .readAllBytes(),
-                    StandardCharsets.UTF_8
-            );
-
-            if (status >= 200 && status < 300) {
-                return mapper.readValue(body, UserDto.class);
-            } else {
-                throw new RuntimeException("Failed to create user: " + status + " " + body);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to create user", e);
-        }
-    }
-
-    public void deleteUser(String token, Long id) {
-        try {
-            URL url = new URL(BASE_URL + "/" + id);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("DELETE");
-            conn.setRequestProperty("Authorization", "Bearer " + token);
-
-            int status = conn.getResponseCode();
-            if (status < 200 || status >= 300) {
-                String body = new String(conn.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
-                throw new RuntimeException("Failed to delete user: " + status + " " + body);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to delete user", e);
-        }
-    }
 }

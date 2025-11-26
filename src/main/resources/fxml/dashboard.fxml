@@ -8,7 +8,7 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:id="dashboardRoot"
             fx:controller="com.markovic.javazadanie.fx.DashboardController"
-            stylesheets="@dashboard.css">
+            stylesheets="@theme-dark.css">
 
     <!-- TOP: header + akcie -->
     <top>
@@ -31,6 +31,9 @@
                 <Button text="Users"
                         onAction="#openUsers"
                         styleClass="secondary-button"/>
+                <Button text="Edit profile"
+                        onAction="#onEditProfile"/>
+
 
                 <Button text="New group"
                         onAction="#onNewGroup"
@@ -39,6 +42,8 @@
                 <Button text="Refresh"
                         onAction="#onRefresh"
                         styleClass="secondary-button"/>
+                <Button text="Logout" onAction="#onLogout" styleClass="danger-button"/>
+
             </HBox>
 
             <!-- Info text (voliteľný) -->

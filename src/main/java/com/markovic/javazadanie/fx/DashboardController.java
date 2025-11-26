@@ -35,6 +35,7 @@ public class DashboardController {
 
     private final DashboardApiClient apiClient = new DashboardApiClient();
     private final ObservableList<StudyGroupItem> groups = FXCollections.observableArrayList();
+    private final UserApiClient userApiClient = new UserApiClient();
 
     @FXML
     public void initialize() {
@@ -266,4 +267,109 @@ public class DashboardController {
             e.printStackTrace();
         }
     }
+    @FXML
+    private void onEditProfile() {
+        String token = SessionManager.getInstance().getToken();
+        if (token == null || token.isBlank()) {
+            statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
+            statusLabel.setText("Not logged in.");
+            return;
+        }
+
+        // 1) načítaj aktuálny profil na background threade
+        new Thread(() -> {
+            try {
+                UserApiClient.UserProfile me = userApiClient.getMe(token);
+                String currentName  = me.getName()  != null ? me.getName()  : "";
+                String currentEmail = me.getEmail() != null ? me.getEmail() : "";
+
+                Platform.runLater(() -> {
+                    // 2) dialóg na meno
+                    TextInputDialog nameDlg = new TextInputDialog(currentName);
+                    nameDlg.setTitle("Edit profile");
+                    nameDlg.setHeaderText("Change your name");
+                    nameDlg.setContentText("Name:");
+                    var nameOpt = nameDlg.showAndWait();
+                    if (nameOpt.isEmpty()) return;
+                    String newName = nameOpt.get().trim();
+
+                    // 3) dialóg na email
+                    TextInputDialog emailDlg = new TextInputDialog(currentEmail);
+                    emailDlg.setTitle("Edit profile");
+                    emailDlg.setHeaderText("Change your email");
+                    emailDlg.setContentText("Email:");
+                    var emailOpt = emailDlg.showAndWait();
+                    if (emailOpt.isEmpty()) return;
+                    String newEmail = emailOpt.get().trim();
+
+                    // 4) voliteľný dialóg na nové heslo (môže byť prázdne = nemeníme)
+                    TextInputDialog passDlg = new TextInputDialog();
+                    passDlg.setTitle("Edit profile");
+                    passDlg.setHeaderText("Change password (optional)");
+                    passDlg.setContentText("New password (leave empty to keep current):");
+                    var passOpt = passDlg.showAndWait();
+                    if (passOpt.isEmpty()) return; // user cancel
+                    String newPassword = passOpt.get().trim();
+                    if (newPassword.isBlank()) {
+                        newPassword = null; // nebudeme posielať, backend heslo nemení
+                    }
+
+                    // 5) samotný update na background threade
+                    statusLabel.setStyle("-fx-text-fill: #cccccc;");
+                    statusLabel.setText("Updating profile...");
+
+                    final String finalNewPassword = newPassword;
+                    new Thread(() -> {
+                        try {
+                            UserApiClient.UserProfile updated =
+                                    userApiClient.updateMe(token, newName, newEmail, finalNewPassword);
+
+                            // update SessionManager
+                            SessionManager.getInstance().setUserEmail(updated.getEmail());
+
+                            Platform.runLater(() -> {
+                                statusLabel.setStyle("-fx-text-fill: #4caf50;");
+                                statusLabel.setText("Profile updated.");
+                            });
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                            Platform.runLater(() -> {
+                                statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
+                                statusLabel.setText("Failed to update profile: " + ex.getMessage());
+                            });
+                        }
+                    }).start();
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> {
+                    statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
+                    statusLabel.setText("Failed to load profile: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+    @FXML
+    private void onLogout() {
+        try {
+            // vyčisti session/token
+            SessionManager.getInstance().clear();
+
+            // načítaj späť login obrazovku
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = (Stage) dashboardRoot.getScene().getWindow();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Login - StudyHub");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            statusLabel.setStyle("-fx-text-fill: #ff6b6b;");
+            statusLabel.setText("Failed to logout: " + e.getMessage());
+        }
+    }
+
+
 }

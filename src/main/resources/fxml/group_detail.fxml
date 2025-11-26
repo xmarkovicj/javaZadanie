@@ -8,11 +8,13 @@
 <BorderPane xmlns="http://javafx.com/javafx/11.0.2"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.markovic.javazadanie.fx.GroupDetailController"
-            stylesheets="@dashboard.css">
+            stylesheets="@theme-dark.css"
+            fx:id="groupRoot"
+            styleClass="root-pane">
 
     <!-- TOP: názov skupiny + popis + join/leave -->
     <top>
-        <VBox spacing="8.0">
+        <VBox spacing="8.0" styleClass="card">
             <padding>
                 <Insets top="10.0" right="10.0" bottom="10.0" left="10.0"/>
             </padding>
@@ -20,7 +22,7 @@
             <HBox spacing="8.0" alignment="CENTER_LEFT">
                 <Button text="← Back"
                         onAction="#onBack"
-                        styleClass="secondary-button"/>
+                        styleClass="button secondary-button"/>
 
                 <Label fx:id="groupNameLabel"
                        text="Group name"
@@ -36,12 +38,12 @@
                 <Button fx:id="joinButton"
                         text="Join group"
                         onAction="#onJoinGroup"
-                        styleClass="primary-button"/>
+                        styleClass="button primary-button"/>
 
                 <Button fx:id="leaveButton"
                         text="Leave group"
                         onAction="#onLeaveGroup"
-                        styleClass="danger-button"/>
+                        styleClass="button danger-button"/>
             </HBox>
         </VBox>
     </top>
@@ -52,27 +54,35 @@
             <items>
 
                 <!-- TASKS -->
-                <VBox spacing="8.0">
+                <VBox spacing="8.0" styleClass="card">
                     <padding>
                         <Insets top="8.0" right="10.0" bottom="8.0" left="10.0"/>
                     </padding>
 
                     <HBox spacing="8.0" alignment="CENTER_LEFT">
-                        <Label text="Tasks" styleClass="section-title"/>
+                        <Label text="Tasks" styleClass="section-header"/>
 
                         <Region HBox.hgrow="ALWAYS"/>
 
                         <Button text="New task"
                                 onAction="#onNewTask"
-                                styleClass="primary-button"/>
+                                styleClass="button primary-button"/>
 
                         <Button text="Open"
                                 onAction="#onOpenTaskDetail"
-                                styleClass="secondary-button"/>
+                                styleClass="button secondary-button"/>
+
+                        <Button text="Edit group"
+                                onAction="#onEditGroup"
+                                styleClass="button secondary-button"/>
+
+                        <Button text="Štatistiky"
+                                onAction="#onOpenStats"
+                                styleClass="button secondary-button"/>
 
                         <Button text="Delete"
                                 onAction="#onDeleteTask"
-                                styleClass="danger-button"/>
+                                styleClass="button danger-button"/>
                     </HBox>
 
                     <TableView fx:id="tasksTable">
@@ -94,12 +104,12 @@
                 </VBox>
 
                 <!-- MEMBERS -->
-                <VBox spacing="8.0">
+                <VBox spacing="8.0" styleClass="card">
                     <padding>
                         <Insets top="8.0" right="10.0" bottom="10.0" left="10.0"/>
                     </padding>
 
-                    <Label text="Members" styleClass="section-title"/>
+                    <Label text="Members" styleClass="section-header"/>
 
                     <TableView fx:id="membersTable">
                         <columns>

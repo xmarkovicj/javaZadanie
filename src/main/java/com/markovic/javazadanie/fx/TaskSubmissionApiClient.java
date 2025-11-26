@@ -16,9 +16,12 @@ public class TaskSubmissionApiClient {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * GET /api/tasks/{taskId}/submissions  – všetky odovzdania pre úlohu
+     */
     public List<TaskSubmissionItem> getSubmissionsForTask(String jwtToken, Long taskId) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/submissions/task/" + taskId)) // TODO: uprav, ak máš inú URL
+                .uri(URI.create(BASE_URL + "/tasks/" + taskId + "/submissions"))
                 .header("Authorization", "Bearer " + jwtToken)
                 .GET()
                 .build();
@@ -36,52 +39,24 @@ public class TaskSubmissionApiClient {
 
         if (arr.isArray()) {
             for (JsonNode node : arr) {
-
-                Long id = node.has("id")
-                        ? node.get("id").asLong()
-                        : (node.has("submissionId") ? node.get("submissionId").asLong() : null);
-
-                String userEmail = "";
-                if (node.has("user") && node.get("user").has("email")) {
-                    userEmail = node.get("user").get("email").asText();
-                } else if (node.has("userEmail")) {
-                    userEmail = node.get("userEmail").asText();
-                }
-
-                String content = "";
-                if (node.has("content")) {
-                    content = node.get("content").asText();
-                } else if (node.has("answerText")) {
-                    content = node.get("answerText").asText();
-                }
-
-                String submittedAt = node.has("submittedAt")
-                        ? node.get("submittedAt").asText()
-                        : "";
-
-                String status = node.has("status")
-                        ? node.get("status").asText()
-                        : "";
-
-                String grade = node.has("grade")
-                        ? node.get("grade").asText()
-                        : "";
-
-                result.add(new TaskSubmissionItem(id, userEmail, content, submittedAt, status, grade));
+                result.add(parseSubmissionNode(node));
             }
         }
 
         return result;
     }
 
+    /**
+     * POST /api/tasks/{taskId}/submissions – odoslanie riešenia
+     */
     public TaskSubmissionItem submitSolution(String jwtToken, Long taskId, String content) throws Exception {
 
         JsonNode body = objectMapper.createObjectNode()
-                .put("taskId", taskId)
-                .put("content", content); // TODO: ak máš iné pole (solutionText, answerText), premenuj
+                .put("content", content);
+        // attachmentUrl vieš doplniť neskôr
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + "/submissions")) // TODO: uprav, ak máš inú URL
+                .uri(URI.create(BASE_URL + "/tasks/" + taskId + "/submissions"))
                 .header("Authorization", "Bearer " + jwtToken)
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
@@ -90,41 +65,27 @@ public class TaskSubmissionApiClient {
         HttpResponse<String> response =
                 httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if (response.statusCode() != 200 && response.statusCode() != 201) {
+        // backend pri "už odovzdal" hádže RuntimeException -> 500 s textom "User already submitted this task"
+        if (response.statusCode() >= 400) {
+            String bodyText = response.body();
+            if (bodyText != null && bodyText.contains("User already submitted this task")) {
+                // špeciálny marker, ktorý chytáš v TaskDetailController
+                throw new AlreadySubmittedException();
+            }
             throw new RuntimeException("Failed to submit solution: " +
-                    response.statusCode() + " " + response.body());
+                    response.statusCode() + " " + bodyText);
         }
 
         JsonNode node = objectMapper.readTree(response.body());
-
-        Long id = node.has("id")
-                ? node.get("id").asLong()
-                : (node.has("submissionId") ? node.get("submissionId").asLong() : null);
-
-        String userEmail = "";
-        if (node.has("user") && node.get("user").has("email")) {
-            userEmail = node.get("user").get("email").asText();
-        } else if (node.has("userEmail")) {
-            userEmail = node.get("userEmail").asText();
-        }
-
-        String submittedAt = node.has("submittedAt")
-                ? node.get("submittedAt").asText()
-                : "";
-
-        String status = node.has("status")
-                ? node.get("status").asText()
-                : "";
-
-        String grade = node.has("grade")
-                ? node.get("grade").asText()
-                : "";
-
-        return new TaskSubmissionItem(id, userEmail, content, submittedAt, status, grade);
+        return parseSubmissionNode(node);
     }
+
+    /**
+     * GET /api/tasks/{taskId}/submissions/my – moje riešenie pre danú úlohu
+     */
     public TaskSubmissionItem getMySubmission(String token, Long taskId) throws Exception {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/api/submissions/my?taskId=" + taskId))
+                .uri(URI.create(BASE_URL + "/tasks/" + taskId + "/submissions/my"))
                 .header("Authorization", "Bearer " + token)
                 .GET()
                 .build();
@@ -133,7 +94,8 @@ public class TaskSubmissionApiClient {
                 httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() == 404) {
-            return null; // nemá submission
+            // užívateľ ešte nemá submission
+            return null;
         }
 
         if (response.statusCode() != 200) {
@@ -141,7 +103,43 @@ public class TaskSubmissionApiClient {
                     response.statusCode() + " " + response.body());
         }
 
-        return objectMapper.readValue(response.body(), TaskSubmissionItem.class);
+        JsonNode node = objectMapper.readTree(response.body());
+        return parseSubmissionNode(node);
     }
 
+    /**
+     * Pomocná metóda na mapovanie JSON -> TaskSubmissionItem
+     */
+    private TaskSubmissionItem parseSubmissionNode(JsonNode node) {
+        Long id = null;
+        if (node.has("id") && !node.get("id").isNull()) {
+            id = node.get("id").asLong();
+        } else if (node.has("submissionId") && !node.get("submissionId").isNull()) {
+            id = node.get("submissionId").asLong();
+        }
+
+        String userEmail = "";
+        if (node.has("user") && node.get("user").has("email")) {
+            userEmail = node.get("user").get("email").asText();
+        } else if (node.has("userEmail")) {
+            userEmail = node.get("userEmail").asText();
+        }
+
+        String content = node.has("content") && !node.get("content").isNull()
+                ? node.get("content").asText()
+                : "";
+
+        String submittedAt = node.has("submittedAt") && !node.get("submittedAt").isNull()
+                ? node.get("submittedAt").asText()
+                : "";
+
+        // backend zatiaľ status nemá → môžeme si ho vymyslieť
+        String status = "SUBMITTED";
+
+        String grade = node.has("grade") && !node.get("grade").isNull()
+                ? node.get("grade").asText()
+                : "";
+
+        return new TaskSubmissionItem(id, userEmail, content, submittedAt, status, grade);
+    }
 }

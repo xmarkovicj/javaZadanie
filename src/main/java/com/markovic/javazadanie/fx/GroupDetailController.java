@@ -10,15 +10,20 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import com.markovic.javazadanie.fx.dto.GroupDto;
+import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+
 
 public class GroupDetailController {
 
+    @FXML
+    private BorderPane groupRoot;
     @FXML
     private Label groupNameLabel;
 
@@ -66,13 +71,14 @@ public class GroupDetailController {
     private final TaskApiClient taskApiClient = new TaskApiClient();
     private final GroupApiClient groupApiClient = new GroupApiClient();
     private final MembershipApiClient membershipApiClient = new MembershipApiClient();
-
+    private static GroupDetailController CURRENT_INSTANCE;
     // toto je DTO pre mazanie skupiny (ak ho používaš inde)
     private GroupDto currentGroup;
 
     // toto je položka z tabuľky skupín na dashboarde
     private StudyGroupItem group;
     private String jwtToken;
+    private TaskWebSocketClient wsClient;
 
     // ---------------------------------------------------------
     // Inicializácia z dashboardu
@@ -81,14 +87,28 @@ public class GroupDetailController {
         this.group = group;
         this.jwtToken = jwtToken;
 
+
         groupNameLabel.setText(group.getName() != null ? group.getName() : "Group");
         if (groupDescriptionLabel != null) {
             groupDescriptionLabel.setText(
                     group.getDescription() != null ? group.getDescription() : ""
             );
         }
+        GroupDto dto = new GroupDto();
+        dto.setId(group.getId());
+        dto.setName(group.getName());
+        dto.setDescription(group.getDescription());
+        this.currentGroup = dto;
 
         refreshGroupDetails();
+        loadMembers();
+        wsClient = new TaskWebSocketClient(
+                group.getId(),
+                v -> loadTasks()
+        );
+        wsClient.connect();
+
+
     }
 
     // ---------------------------------------------------------
@@ -99,6 +119,8 @@ public class GroupDetailController {
         if (statusLabel != null) {
             statusLabel.setText("");
         }
+        CURRENT_INSTANCE = this;
+
 
         // tasks
         if (colTaskId != null) {
@@ -165,6 +187,9 @@ public class GroupDetailController {
     @FXML
     private void onBack() {
         try {
+            if (wsClient != null) {
+                wsClient.close();
+            }
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/fxml/dashboard.fxml")
             );
@@ -173,6 +198,7 @@ public class GroupDetailController {
             Stage stage = (Stage) groupNameLabel.getScene().getWindow();
             stage.setScene(new javafx.scene.Scene(root));
             stage.setTitle("Study Platform - Dashboard");
+
         } catch (Exception e) {
             e.printStackTrace();
             statusLabel.setStyle("-fx-text-fill: red;");
@@ -224,6 +250,7 @@ public class GroupDetailController {
             return;
         }
 
+        // 1) Názov
         TextInputDialog titleDialog = new TextInputDialog();
         titleDialog.setTitle("New Task");
         titleDialog.setHeaderText("Create new task");
@@ -236,21 +263,49 @@ public class GroupDetailController {
                 return;
             }
 
+            // 2) Popis
             TextInputDialog descDialog = new TextInputDialog();
             descDialog.setTitle("New Task");
             descDialog.setHeaderText("Description");
             descDialog.setContentText("Description:");
 
             descDialog.showAndWait().ifPresent(desc -> {
-                LocalDateTime due = LocalDate.now()
-                        .plusDays(1)
-                        .atTime(23, 59);
 
-                String dueStr = due.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                createTask(title, desc, dueStr);
+                // 3) Deadline – celé číslo v dňoch
+                TextInputDialog daysDialog = new TextInputDialog("1");
+                daysDialog.setTitle("New Task");
+                daysDialog.setHeaderText("Deadline");
+                daysDialog.setContentText("Deadline in days from now (1, 2, 3...):");
+
+                daysDialog.showAndWait().ifPresent(daysStr -> {
+                    int days;
+                    try {
+                        days = Integer.parseInt(daysStr.trim());
+                        if (days <= 0) {
+                            throw new NumberFormatException("non-positive");
+                        }
+                    } catch (NumberFormatException ex) {
+                        statusLabel.setStyle("-fx-text-fill: red;");
+                        statusLabel.setText("Deadline must be a positive integer number of days.");
+                        return;
+                    }
+
+                    // napr. o N dní o 23:59
+                    LocalDateTime due = LocalDateTime.now()
+                            .plusDays(days)
+                            .withHour(23)
+                            .withMinute(59)
+                            .withSecond(0)
+                            .withNano(0);
+
+                    String dueStr = due.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+                    createTask(title, desc, dueStr);
+                });
             });
         });
     }
+
 
     private void createTask(String title, String description, String dueDate) {
         statusLabel.setText("Creating task...");
@@ -353,7 +408,8 @@ public class GroupDetailController {
             return;
         }
 
-        if (jwtToken == null || jwtToken.isEmpty()) {
+        String token = SessionManager.getInstance().getToken();
+        if (token == null || token.isEmpty()) {
             statusLabel.setStyle("-fx-text-fill: red;");
             statusLabel.setText("You are not logged in.");
             return;
@@ -364,22 +420,26 @@ public class GroupDetailController {
 
         new Thread(() -> {
             try {
-                membershipApiClient.joinGroup(jwtToken, group.getId());
+                membershipApiClient.joinGroup(token, group.getId());
 
-                Platform.runLater(() -> {
+                javafx.application.Platform.runLater(() -> {
                     statusLabel.setStyle("-fx-text-fill: #7CFC00;");
                     statusLabel.setText("You have joined this group.");
                     refreshGroupDetails();
+                    try {
+                        loadMembers();
+                    } catch (Exception ignored) {}
                 });
             } catch (Exception e) {
                 e.printStackTrace();
-                Platform.runLater(() -> {
+                javafx.application.Platform.runLater(() -> {
                     statusLabel.setStyle("-fx-text-fill: red;");
                     statusLabel.setText("Failed to join group: " + e.getMessage());
                 });
             }
         }).start();
     }
+
 
     @FXML
     private void onLeaveGroup() {
@@ -522,5 +582,102 @@ public class GroupDetailController {
             }
         }).start();
     }
+
+    public static void refreshCurrentTasksStatic() {
+        if (CURRENT_INSTANCE != null) {
+            CURRENT_INSTANCE.loadTasks();
+        }
+    }
+    @FXML
+    private void onEditGroup() {
+        if (group == null || group.getId() == null) {
+            statusLabel.setStyle("-fx-text-fill: red;");
+            statusLabel.setText("Group not loaded.");
+            return;
+        }
+
+        TextInputDialog nameDlg = new TextInputDialog(group.getName());
+        nameDlg.setTitle("Edit group");
+        nameDlg.setHeaderText("Edit group name");
+        nameDlg.setContentText("Name:");
+        var nameOpt = nameDlg.showAndWait();
+        if (nameOpt.isEmpty()) return;
+        String newName = nameOpt.get().trim();
+        if (newName.isEmpty()) return;
+
+        TextInputDialog descDlg = new TextInputDialog(group.getDescription());
+        descDlg.setTitle("Edit group");
+        descDlg.setHeaderText("Edit description");
+        descDlg.setContentText("Description:");
+        var descOpt = descDlg.showAndWait();
+        if (descOpt.isEmpty()) return;
+        String newDesc = descOpt.get().trim();
+
+        statusLabel.setStyle("-fx-text-fill: -fx-text-base-color;");
+        statusLabel.setText("Updating group...");
+
+        String token = SessionManager.getInstance().getToken();
+
+        new Thread(() -> {
+            try {
+                StudyGroupItem updated =
+                        groupApiClient.updateGroup(token, group.getId(), newName, newDesc);
+
+                Platform.runLater(() -> {
+                    this.group = updated;
+                    groupNameLabel.setText("Group: " + updated.getName());
+                    statusLabel.setStyle("-fx-text-fill: #8bc34a;");
+                    statusLabel.setText("Group updated.");
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(() -> {
+                    statusLabel.setStyle("-fx-text-fill: red;");
+                    statusLabel.setText("Failed to update group: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+    @FXML
+    private void onOpenStats() {
+        if (group == null || jwtToken == null) {
+            System.err.println("Group or token is null in onOpenStats()");
+            Alert a = new Alert(Alert.AlertType.WARNING);
+            a.setTitle("No group");
+            a.setHeaderText("Group data not loaded");
+            a.setContentText("Please reopen the group and try again.");
+            a.showAndWait();
+            return;
+        }
+
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/fxml/stats.fxml")
+            );
+            Parent root = loader.load();
+
+            StatsController controller = loader.getController();
+            controller.initData(group, jwtToken);
+
+            Stage stage = new Stage();
+            stage.setTitle("Statistics - " + group.getName());
+            stage.setScene(new Scene(root));
+
+            // Owner okna – len ak máme root v scene
+            if (groupRoot != null && groupRoot.getScene() != null) {
+                stage.initOwner(groupRoot.getScene().getWindow());
+            }
+
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+
 
 }

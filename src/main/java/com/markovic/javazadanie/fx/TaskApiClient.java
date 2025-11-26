@@ -20,14 +20,7 @@ public class TaskApiClient {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Načíta tasks pre danú group.
-     * UPRAV si URL podľa svojho backendu, napr:
-     *  - /api/tasks/group/{groupId}
-     *  - alebo /api/tasks?groupId={groupId}
-     */
     public List<TaskItem> getTasksForGroup(String jwtToken, Long groupId) throws Exception {
-        // PRÍKLAD: GET /api/tasks/group/{id}
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/tasks/group/" + groupId))
                 .header("Authorization", "Bearer " + jwtToken)
@@ -57,24 +50,45 @@ public class TaskApiClient {
 
                 String title = node.has("title") ? node.get("title").asText() : "";
                 String description = node.has("description") ? node.get("description").asText() : "";
+
                 String dueDate = "";
-                if (node.has("dueDate")) {
-                    dueDate = node.get("dueDate").asText();
+                if (node.hasNonNull("deadline")) {
+                    dueDate = node.get("deadline").asText();
                 } else if (node.has("deadline")) {
                     dueDate = node.get("deadline").asText();
                 }
 
-                result.add(new TaskItem(id, title, description, dueDate));
+                // --- AUTHOR / CREATED BY ---
+                String createdBy = null;
+
+                // 1) priamo createdByEmail (ak ho posielaš)
+                if (node.hasNonNull("createdByEmail")) {
+                    createdBy = node.get("createdByEmail").asText();
+                }
+                // 2) vnorený objekt "createdBy": { email, name, ... }
+                else if (node.hasNonNull("createdBy")) {
+                    JsonNode cb = node.get("createdBy");
+                    if (cb.hasNonNull("email")) {
+                        createdBy = cb.get("email").asText();
+                    } else if (cb.hasNonNull("name")) {
+                        createdBy = cb.get("name").asText();
+                    }
+                }
+
+                TaskItem item = new TaskItem(id, title, description, dueDate, createdBy);
+
+                // ak posielaš aj status
+                if (node.hasNonNull("status")) {
+                    item.setStatus(node.get("status").asText());
+                }
+
+                result.add(item);
             }
         }
 
         return result;
     }
 
-    /**
-     * Vytvorenie tasku v skupine.
-     * UPRAV URL + body podľa TaskCreateRequest v backende.
-     */
     public TaskItem createTask(String jwtToken, Long groupId,
                                String title, String description, String dueDate) throws Exception {
 
@@ -82,7 +96,7 @@ public class TaskApiClient {
                 .put("groupId", groupId)
                 .put("title", title)
                 .put("description", description)
-                .put("dueDate", dueDate); // napr. "2025-11-20T12:00:00"
+                .put("deadline", dueDate); // alebo "deadline", podľa backendu
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + "/tasks"))
@@ -109,15 +123,36 @@ public class TaskApiClient {
         }
 
         String tTitle = node.has("title") ? node.get("title").asText() : title;
-        String tDesc = node.has("description") ? node.get("description").asText() : description;
-        String tDue = node.has("dueDate") ? node.get("dueDate").asText() : dueDate;
+        String tDesc  = node.has("description") ? node.get("description").asText() : description;
+        String tDue   = node.has("dueDate") ? node.get("dueDate").asText() : dueDate;
 
-        return new TaskItem(id, tTitle, tDesc, tDue);
+        // --- AUTHOR / CREATED BY ---
+        String createdBy = null;
+
+        if (node.hasNonNull("createdByEmail")) {
+            createdBy = node.get("createdByEmail").asText();
+        } else if (node.hasNonNull("createdBy")) {
+            JsonNode cb = node.get("createdBy");
+            if (cb.hasNonNull("email")) {
+                createdBy = cb.get("email").asText();
+            } else if (cb.hasNonNull("name")) {
+                createdBy = cb.get("name").asText();
+            }
+        }
+
+        TaskItem item = new TaskItem(id, tTitle, tDesc, tDue, createdBy);
+
+        if (node.hasNonNull("status")) {
+            item.setStatus(node.get("status").asText());
+        }
+
+        return item;
     }
+
     public void deleteTask(String token, Long taskId) {
         HttpURLConnection conn = null;
         try {
-            URL url = new URL(BASE_URL + "/" + taskId);  // napr. http://localhost:8080/api/tasks/5
+            URL url = new URL(BASE_URL + "/tasks/" + taskId);
             conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("DELETE");
             conn.setRequestProperty("Accept", "application/json");
@@ -125,12 +160,10 @@ public class TaskApiClient {
 
             int status = conn.getResponseCode();
 
-            // 200 OK alebo 204 No Content berieme ako úspech
             if (status == HttpURLConnection.HTTP_OK || status == HttpURLConnection.HTTP_NO_CONTENT) {
                 return;
             }
 
-            // inak si prečítame error body a hodíme výnimku
             InputStream err = conn.getErrorStream();
             String body = "";
             if (err != null) {
@@ -146,4 +179,47 @@ public class TaskApiClient {
             }
         }
     }
+    public TaskItem updateTask(String jwtToken, Long taskId,
+                               String title, String description, String dueDate) throws Exception {
+
+        JsonNode body = objectMapper.createObjectNode()
+                .put("title", title)
+                .put("description", description)
+                .put("deadline", dueDate); // POZOR: backend čaká LocalDateTime -> ISO string
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/tasks/" + taskId))
+                .header("Authorization", "Bearer " + jwtToken)
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(body.toString()))
+                .build();
+
+        HttpResponse<String> response =
+                httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200) {
+            throw new RuntimeException("Failed to update task: " +
+                    response.statusCode() + " " + response.body());
+        }
+
+        JsonNode node = objectMapper.readTree(response.body());
+
+        Long id = node.has("taskId") ? node.get("taskId").asLong()
+                : node.get("id").asLong();
+        String tTitle = node.has("title") ? node.get("title").asText() : title;
+        String tDesc  = node.has("description") ? node.get("description").asText() : description;
+        String tDue   = node.has("deadline") ? node.get("deadline").asText() : dueDate;
+
+        String createdByEmail = null;
+        if (node.hasNonNull("createdByEmail")) {
+            createdByEmail = node.get("createdByEmail").asText();
+        }
+
+        TaskItem item = new TaskItem(id, tTitle, tDesc, tDue, createdByEmail);
+        if (node.hasNonNull("status")) {
+            item.setStatus(node.get("status").asText());
+        }
+        return item;
+    }
+
 }

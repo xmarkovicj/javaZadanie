@@ -1,5 +1,6 @@
 package com.markovic.javazadanie.controller;
 
+import com.markovic.javazadanie.dto.LoginResponseDto;
 import com.markovic.javazadanie.model.ActivityAction;
 import com.markovic.javazadanie.model.User;
 import com.markovic.javazadanie.repository.UserRepository;
@@ -12,16 +13,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-
-
-
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -43,7 +42,7 @@ public class AuthController {
 
         User saved = userService.register(u);
 
-        // 🔔 LOG: registrácia
+        // LOG: registrácia
         activityLogService.log(
                 saved.getId(),
                 ActivityAction.USER_REGISTERED,
@@ -54,37 +53,47 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequest req) {
         try {
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
             );
 
-            String jwt = jwtUtil.generateToken(((UserDetails) auth.getPrincipal()).getUsername());
+            String email = ((UserDetails) auth.getPrincipal()).getUsername();
+            String jwt = jwtUtil.generateToken(email);
 
-            // nájdeme usera kvôli logu
-            User user = userRepository.findByEmail(req.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
-            if (user != null) {
-                activityLogService.log(
-                        user.getId(),
-                        ActivityAction.USER_LOGIN_SUCCESS,
-                        "User logged in successfully"
-                );
-            }
+            // nájdeme usera kvôli logu a userId
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-            return ResponseEntity.ok(new AuthResponse(jwt));
+            // LOG: úspešný login
+            activityLogService.log(
+                    user.getId(),
+                    ActivityAction.USER_LOGIN_SUCCESS,
+                    "User logged in successfully"
+            );
 
+            LoginResponseDto resp = new LoginResponseDto(
+                    jwt,
+                    user.getId(),
+                    user.getEmail()
+            );
+            return ResponseEntity.ok(resp);
         } catch (AuthenticationException ex) {
             // ak existuje user s týmto emailom, zalogujeme neúspešný pokus
-            User user = userRepository.findByEmail(req.getEmail()).orElseThrow(() -> new RuntimeException("User not found"));
-            if (user != null) {
-                activityLogService.log(
-                        user.getId(),
-                        ActivityAction.USER_LOGIN_FAILED,
-                        "Failed login attempt"
-                );
-            }
-            return ResponseEntity.status(401).body("Invalid credentials");
+            Optional<User> optUser = userRepository.findByEmail(req.getEmail());
+            optUser.ifPresent(user ->
+                    activityLogService.log(
+                            user.getId(),
+                            ActivityAction.USER_LOGIN_FAILED,
+                            "Failed login attempt"
+                    )
+            );
+
+            // 401 + prázdny DTO – klient to aj tak spracuje ako chybu
+            return ResponseEntity
+                    .status(401)
+                    .body(new LoginResponseDto(null, null, null));
         }
     }
 
@@ -92,9 +101,11 @@ public class AuthController {
     public static class RegisterRequest {
         @NotBlank
         private String name;
+
         @NotBlank
         @Email
         private String email;
+
         @NotBlank
         @Size(min = 6, message = "Password at least 6 chars")
         private String password;
@@ -108,10 +119,5 @@ public class AuthController {
 
         @NotBlank
         private String password;
-    }
-
-    @Data
-    public static class AuthResponse {
-        private final String token;
     }
 }

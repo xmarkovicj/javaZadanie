@@ -7,7 +7,7 @@
 <BorderPane xmlns="http://javafx.com/javafx/11.0.2"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.markovic.javazadanie.fx.TaskDetailController"
-            stylesheets="@dashboard.css">
+            stylesheets="@theme-dark.css">
 
     <!-- TOP -->
     <top>
@@ -25,6 +25,10 @@
                    styleClass="title-label"/>
 
             <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Edit task"
+                    onAction="#onEditTask"
+                    styleClass="primary-button"/>
+
 
             <Button text="Zmazať úlohu"
                     fx:id="deleteTaskButton"
@@ -46,18 +50,26 @@
                     <ColumnConstraints percentWidth="80"/>
                 </columnConstraints>
 
+                <!-- ľavý stĺpec – popisky -->
                 <Label text="Stav:" GridPane.rowIndex="0" GridPane.columnIndex="0"
-                       styleClass="field-label"/>
-                <Label fx:id="statusLabel" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-
+                       styleClass="meta-label"/>
                 <Label text="Deadline:" GridPane.rowIndex="1" GridPane.columnIndex="0"
-                       styleClass="field-label"/>
-                <Label fx:id="deadlineLabel" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-
+                       styleClass="meta-label"/>
                 <Label text="Vytvoril:" GridPane.rowIndex="2" GridPane.columnIndex="0"
-                       styleClass="field-label"/>
-                <Label fx:id="createdByLabel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                       styleClass="meta-label"/>
+
+                <!-- pravý stĺpec – hodnoty -->
+                <Label fx:id="statusLabel"
+                       GridPane.rowIndex="0" GridPane.columnIndex="1"
+                       styleClass="meta-value"/>
+                <Label fx:id="deadlineLabel"
+                       GridPane.rowIndex="1" GridPane.columnIndex="1"
+                       styleClass="meta-value"/>
+                <Label fx:id="createdByLabel"
+                       GridPane.rowIndex="2" GridPane.columnIndex="1"
+                       styleClass="meta-value"/>
             </GridPane>
+
 
             <Label text="Popis úlohy" styleClass="section-title"/>
             <TextArea fx:id="descriptionArea"

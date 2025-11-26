@@ -9,6 +9,8 @@ import com.markovic.javazadanie.repository.TaskSubmissionRepository;
 import com.markovic.javazadanie.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.markovic.javazadanie.model.TaskStatus;
+
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,7 +47,10 @@ public class TaskSubmissionService {
 
         TaskSubmission saved = submissionRepository.save(sub);
 
-        // 🔔 LOG: odovzdanie úlohy
+        // status úlohy -> SUBMITTED
+        task.setStatus(TaskStatus.SUBMITTED);
+        taskRepository.save(task);
+
         activityLogService.log(
                 userId,
                 ActivityAction.SUBMISSION_CREATED,
@@ -56,6 +61,8 @@ public class TaskSubmissionService {
 
         return saved;
     }
+
+
 
     public List<TaskSubmission> getAll() {
         return submissionRepository.findAll();

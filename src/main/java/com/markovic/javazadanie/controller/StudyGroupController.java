@@ -1,12 +1,16 @@
 package com.markovic.javazadanie.controller;
 
 import com.markovic.javazadanie.model.StudyGroup;
+import com.markovic.javazadanie.model.User;
+import com.markovic.javazadanie.repository.UserRepository;
 import com.markovic.javazadanie.service.StudyGroupService;
 import com.markovic.javazadanie.model.Membership;
 import com.markovic.javazadanie.service.MembershipService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import javax.validation.Valid;
 import java.util.List;
@@ -18,6 +22,7 @@ import java.util.List;
 public class StudyGroupController {
     private final StudyGroupService groupService;
     private final MembershipService membershipService;
+    private final  UserRepository userRepository;
 
     //Create
     @PostMapping
@@ -73,6 +78,33 @@ public class StudyGroupController {
                 : ResponseEntity.notFound().build();
     }
 
+    @PostMapping("/{groupId}/join")
+    public ResponseEntity<Membership> joinGroupForCurrentUser(
+            @PathVariable Long groupId,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found: " + email));
+
+        Membership m = membershipService.addMember(groupId, user.getId(), "MEMBER");
+        return ResponseEntity.ok(m);
+    }
+
+    @PostMapping("/{groupId}/leave")
+    public ResponseEntity<Void> leaveGroupForCurrentUser(
+            @PathVariable Long groupId,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found: " + email));
+
+        membershipService.removeMember(groupId,user.getId());
+        return ResponseEntity.noContent().build();
+    }
 
 
 

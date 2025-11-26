@@ -39,9 +39,9 @@ public class Task{
     @Size(max = 2000)
     private String description;
 
-    @Column(nullable = false)
-    @NotBlank(message = "Status: ")
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private TaskStatus status = TaskStatus.OPEN;
+
 
     private LocalDateTime deadline;
 

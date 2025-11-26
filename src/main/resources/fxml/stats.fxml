@@ -1,0 +1,50 @@
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.LineChart?>
+<BorderPane xmlns="http://javafx.com/javafx/11.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.markovic.javazadanie.fx.StatsController"
+            stylesheets="@theme-dark.css">
+
+    <top>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Štatistiky skupiny" styleClass="title-label"/>
+            <Label fx:id="groupNameLabel"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Zavrieť" onAction="#onClose"/>
+        </HBox>
+    </top>
+
+    <center>
+        <VBox spacing="12">
+            <HBox spacing="20">
+                <PieChart fx:id="statusPieChart" prefWidth="300" prefHeight="250"/>
+                <BarChart fx:id="participationChart">
+                    <xAxis>
+                        <CategoryAxis label="Člen"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis label="Počet odovzdaní"/>
+                    </yAxis>
+                </BarChart>
+            </HBox>
+
+            <LineChart fx:id="activityChart">
+                <xAxis>
+                    <CategoryAxis label="Deň"/>
+                </xAxis>
+                <yAxis>
+                    <NumberAxis label="Aktivita"/>
+                </yAxis>
+            </LineChart>
+        </VBox>
+    </center>
+
+</BorderPane>

@@ -3,9 +3,10 @@
     -fx-background-color: linear-gradient(to bottom, #121212, #1b1e26);
     -fx-padding: 16;
     -fx-font-family: "Segoe UI", "Roboto", sans-serif;
-    -fx-text-fill: #f5f5f5;
+    -fx-text-fill: #ffffff;           /* výraznejší text */
 }
 
+/* ===== Cards ===== */
 .card {
     -fx-background-color: #1f2430;
     -fx-background-radius: 14;
@@ -22,20 +23,20 @@
 
 .subtitle-label {
     -fx-font-size: 12px;
-    -fx-text-fill: #9ca3af;
+    -fx-text-fill: #d1d5db;          /* svetlejšia šedá */
 }
 
 /* ===== Buttons ===== */
 .button {
     -fx-background-radius: 10;
-    -fx-padding: 6 14 6 14;
+    -fx-padding: 6 14;
     -fx-font-size: 13px;
     -fx-cursor: hand;
+    -fx-text-fill: #ffffff;          /* pre istotu */
 }
 
 .primary-button {
     -fx-background-color: #3b82f6;
-    -fx-text-fill: white;
 }
 .primary-button:hover {
     -fx-background-color: #2563eb;
@@ -46,8 +47,7 @@
 
 .secondary-button {
     -fx-background-color: transparent;
-    -fx-border-color: #4b5563;
-    -fx-border-radius: 10;
+    -fx-border-color: #6b7280;       /* zosvetlený */
     -fx-text-fill: #e5e7eb;
 }
 .secondary-button:hover {
@@ -64,18 +64,20 @@
 
 /* ===== Inputs ===== */
 .text-field, .password-field, .combo-box, .date-picker, .text-area {
-    -fx-background-color: #111827, #111827;
-    -fx-text-fill: #e5e7eb;
-    -fx-prompt-text-fill: #6b7280;
+    -fx-background-color: #1f2430, #12141b;
+    -fx-text-fill: #ffffff;               /* jasný text */
+    -fx-prompt-text-fill: #9ca3af;        /* svetlá šedá */
     -fx-background-radius: 8;
     -fx-border-radius: 8;
-    -fx-border-color: #374151;
-    -fx-padding: 6 10 6 10;
+    -fx-border-color: #4b5563;            /* svetlejší border */
+    -fx-padding: 6 10;
     -fx-font-size: 13px;
 }
+
 .text-field:focused, .password-field:focused, .combo-box:focused, .date-picker:focused, .text-area:focused {
     -fx-border-color: #3b82f6;
-    -fx-background-color: #020617, #020617;
+    -fx-background-color: #0e1118, #0e1118;
+    -fx-text-fill: #ffffff;
 }
 
 /* ===== Tabs ===== */
@@ -87,10 +89,10 @@
 }
 .tab {
     -fx-background-color: transparent;
-    -fx-text-base-color: #9ca3af;
+    -fx-text-base-color: #d1d5db;       /* svetlejšie */
 }
 .tab:selected {
-    -fx-background-color: #111827;
+    -fx-background-color: #1f2430;
     -fx-text-base-color: #ffffff;
 }
 
@@ -102,52 +104,51 @@
     -fx-border-color: #1f2937;
     -fx-table-cell-border-color: #1f2937;
     -fx-control-inner-background: #111827;
-    -fx-control-inner-background-alt: #020617;
-    -fx-text-background-color: #e5e7eb;
+    -fx-control-inner-background-alt: #1a1f2b;
+    -fx-text-background-color: #ffffff;
 }
 .table-view .column-header-background {
-    -fx-background-color: #020617;
-}
-.table-view .column-header, .table-view .filler {
-    -fx-size: 26;
-    -fx-background-color: transparent;
+    -fx-background-color: #1a1d27;
 }
 .table-view .column-header .label {
-    -fx-text-fill: #9ca3af;
+    -fx-text-fill: #ffffff;
     -fx-font-size: 12px;
 }
 .table-row-cell {
     -fx-background-color: transparent;
+    -fx-text-fill: #e5e7eb;          /* jasnejší text */
 }
 .table-row-cell:filled:selected, .table-row-cell:focused:selected {
     -fx-background-color: #1d4ed8;
+    -fx-text-fill: #ffffff;
 }
 .table-row-cell:filled:hover {
-    -fx-background-color: #111827;
+    -fx-background-color: #1a1d27;
 }
 
 /* ===== Status & error labels ===== */
 .status-label {
-    -fx-text-fill: #9ca3af;
-    -fx-font-size: 12px;
-}
-.error-label {
-    -fx-text-fill: #f97373;
+    -fx-text-fill: #e5e7eb;
     -fx-font-size: 12px;
 }
 
-/* ===== Title labels ===== */
+.error-label {
+    -fx-text-fill: #ff6b6b;          /* jasnejšie červená */
+    -fx-font-size: 12px;
+}
+
+/* ===== Titles ===== */
 .title-label {
     -fx-font-size: 22px;
     -fx-font-weight: bold;
-    -fx-text-fill: #f9fafb;
+    -fx-text-fill: #ffffff;
 }
 
-/* Small chips/badges */
+/* ===== Chip ===== */
 .chip {
-    -fx-background-color: #111827;
+    -fx-background-color: #1f2430;
     -fx-background-radius: 999;
-    -fx-padding: 3 10 3 10;
+    -fx-padding: 3 10;
     -fx-font-size: 11px;
-    -fx-text-fill: #9ca3af;
+    -fx-text-fill: #ffffff;
 }

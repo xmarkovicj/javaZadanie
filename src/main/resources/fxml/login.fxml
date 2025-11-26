@@ -7,7 +7,7 @@
 <BorderPane xmlns="http://javafx.com/javafx/11.0.2"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.markovic.javazadanie.fx.LoginController"
-            stylesheets="@app-dark.css"
+            stylesheets="@theme-dark.css"
             styleClass="root-pane">
 
     <center>
@@ -19,34 +19,34 @@
             <!-- Left "branding" side -->
             <VBox spacing="12">
                 <Label text="StudyHub"
-                       styleClass="title-label"/>
+                       styleClass="app-title"/>
                 <Label text="Spravuj študijné skupiny, úlohy a odovzdávky na jednom mieste."
                        wrapText="true"
                        maxWidth="260"
-                       styleClass="subtitle-label"/>
-                <VBox spacing="8" styleClass="card">
-                    <Label text="Features" styleClass="section-header"/>
-                    <Label text="- Tvorba skupín a úloh" styleClass="subtitle-label"/>
-                    <Label text="- Odovzdávanie riešení" styleClass="subtitle-label"/>
-                    <Label text="- Aktivity log a prehľad" styleClass="subtitle-label"/>
+                       styleClass="subtitle"/>
+                <VBox spacing="8" styleClass="features-card">
+                    <Label text="Features" styleClass="features-card"/>
+                    <Label text="- Tvorba skupín a úloh" styleClass="label"/>
+                    <Label text="- Odovzdávanie riešení" styleClass="label"/>
+                    <Label text="- Aktivity log a prehľad" styleClass="label"/>
                 </VBox>
             </VBox>
 
             <!-- Right: card with tabs -->
             <StackPane HBox.hgrow="ALWAYS">
-                <VBox styleClass="card" spacing="14">
-                    <TabPane fx:id="tabPane">
+                <VBox styleClass="surface-elevated" spacing="14">
+                    <TabPane fx:id="tabPane" styleClass="tab-pane">
                         <tabs>
                             <Tab text="Prihlásenie" closable="false">
                                 <content>
                                     <VBox spacing="10">
                                         <Label text="E-mail"
-                                               styleClass="subtitle-label"/>
+                                               styleClass="form-label"/>
                                         <TextField fx:id="loginEmailField"
                                                    promptText="tvoj@email.com"/>
 
                                         <Label text="Heslo"
-                                               styleClass="subtitle-label"/>
+                                               styleClass="form-label"/>
                                         <PasswordField fx:id="loginPasswordField"
                                                        promptText="••••••••"/>
 
@@ -67,19 +67,19 @@
 
                             <Tab text="Registrácia" closable="false">
                                 <content>
-                                    <VBox spacing="10">
+                                    <VBox spacing="10" styleClass="surface-elevated">
                                         <Label text="Meno"
-                                               styleClass="subtitle-label"/>
+                                               styleClass="form-label"/>
                                         <TextField fx:id="registerNameField"
                                                    promptText="Ako ťa volajú?"/>
 
                                         <Label text="E-mail"
-                                               styleClass="subtitle-label"/>
+                                               styleClass="form-label"/>
                                         <TextField fx:id="registerEmailField"
                                                    promptText="novy@email.com"/>
 
                                         <Label text="Heslo"
-                                               styleClass="subtitle-label"/>
+                                               styleClass="form-label"/>
                                         <PasswordField fx:id="registerPasswordField"
                                                        promptText="Silné heslo"/>
 

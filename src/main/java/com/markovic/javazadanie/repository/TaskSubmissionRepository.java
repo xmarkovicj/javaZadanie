@@ -19,5 +19,6 @@ public interface TaskSubmissionRepository extends JpaRepository<TaskSubmission, 
     boolean existsByTask_TaskIdAndUser_Id(Long taskId, Long userId);
 
     Optional<TaskSubmission> findByTask_TaskIdAndUser_Id(Long taskId, Long userId);
+    List<TaskSubmission> findByTask_Group_GroupId(Long groupId);
 
 }

@@ -1,0 +1,442 @@
+/* ================================
+   GLOBAL DARK THEME – StudyHub
+   ================================ */
+
+/* ---- Root / background ---- */
+.root {
+    -fx-font-family: "Segoe UI", "Roboto", sans-serif;
+    -fx-background-color: #020617;             /* celá appka dark */
+    -fx-text-fill: #e5e7eb;
+}
+
+.root-pane {
+    -fx-padding: 16;
+    -fx-background-color: transparent;
+}
+
+/* Divider line */
+.divider {
+    -fx-background-color: #1f2937;
+    -fx-min-height: 1;
+}
+
+/* ---- Cards / panels ---- */
+.card {
+    -fx-background-color: #020617;
+    -fx-background-radius: 16;
+    -fx-padding: 16;
+    -fx-spacing: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 22, 0.25, 0, 0);
+}
+
+/* Vysunuté panely (login box, detail tasku…) */
+.surface-elevated {
+    -fx-background-color: #020617;
+    -fx-background-radius: 18;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 28, 0.25, 0, 0);
+}
+
+/* ================================
+   TYPOGRAPHY
+   ================================ */
+
+.title-label, .app-title {
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f9fafb;
+}
+
+.section-header {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f9fafb;
+}
+
+.subtitle, .subtitle-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #d1d5db;
+}
+
+.form-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #e5e7eb;
+}
+
+.meta-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #9ca3af;   /* „Stav:“, „Deadline:“… */
+}
+
+.status-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #e5e7eb;
+}
+
+.error-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #f97373;
+}
+
+.chip {
+    -fx-background-color: #020617;
+    -fx-background-radius: 999;
+    -fx-padding: 3 10;
+    -fx-font-size: 11px;
+    -fx-text-fill: #f9fafb;
+}
+
+/* ================================
+   BUTTONS
+   ================================ */
+
+.button {
+    -fx-background-radius: 10;
+    -fx-padding: 6 14;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
+    -fx-text-fill: #f9fafb;
+    -fx-background-color: #020617;
+    -fx-border-color: #374151;
+    -fx-border-radius: 10;
+}
+
+.button:hover {
+    -fx-background-color: #020617;
+    -fx-border-color: #4b5563;
+}
+
+.primary-button {
+    -fx-background-color: #3b82f6;
+    -fx-border-color: transparent;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 600;
+}
+
+.primary-button:hover {
+    -fx-background-color: #2563eb;
+}
+
+.primary-button:pressed {
+    -fx-background-color: #1d4ed8;
+}
+
+.secondary-button {
+    -fx-background-color: transparent;
+    -fx-border-color: #6b7280;
+    -fx-text-fill: #e5e7eb;
+}
+
+.secondary-button:hover {
+    -fx-border-color: #9ca3af;
+}
+
+.danger-button {
+    -fx-background-color: #ef4444;
+    -fx-border-color: transparent;
+    -fx-text-fill: #ffffff;
+}
+
+.danger-button:hover {
+    -fx-background-color: #dc2626;
+}
+
+/* Back / ghost button */
+.ghost-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #e5e7eb;
+}
+.ghost-button:hover {
+    -fx-text-fill: #ffffff;
+}
+
+/* ================================
+   INPUTS (TextField, TextArea…)
+   ================================ */
+
+.text-field,
+.password-field,
+.text-area,
+.combo-box,
+.date-picker {
+    -fx-background-color: #020617;
+    -fx-text-fill: #f9fafb;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-color: #30363d;
+    -fx-prompt-text-fill: #6b7280;
+    -fx-font-size: 13px;
+}
+
+.text-field:focused,
+.password-field:focused,
+.text-area:focused,
+.combo-box:focused,
+.date-picker:focused {
+    -fx-border-color: #3b82f6;
+    -fx-background-color: #020617;
+    -fx-text-fill: #ffffff;
+}
+
+/* TextArea scrollbary */
+.text-area .scroll-bar:vertical,
+.text-area .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+.text-area .thumb {
+    -fx-background-color: #475569;
+    -fx-background-radius: 8;
+}
+
+/* ================================
+   TABS (login: Prihlásenie / Registrácia)
+   ================================ */
+
+.tab-pane {
+    -fx-background-color: transparent;
+}
+
+.tab-header-area {
+    -fx-background-color: transparent;
+}
+
+.tab {
+    -fx-background-color: #020617;
+    -fx-background-radius: 6 6 0 0;
+    -fx-text-base-color: #94a3b8;
+}
+
+.tab:selected {
+    -fx-background-color: #1f2937;
+    -fx-text-base-color: #ffffff;
+}
+
+/* ak máš label vo vnútri tabu */
+.tab-label {
+    -fx-text-fill: inherit;
+}
+
+/* ================================
+   TABLEVIEW
+   ================================ */
+
+.table-view {
+    -fx-background-color: #020617;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #1f2937;
+    -fx-table-cell-border-color: #1f2937;
+    -fx-control-inner-background: #020617;
+    -fx-control-inner-background-alt: #020617;
+    -fx-text-background-color: #f9fafb;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #020617;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #f9fafb;
+    -fx-font-size: 12px;
+}
+
+.table-row-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e5e7eb;
+}
+
+.table-row-cell:filled:selected,
+.table-row-cell:focused:selected {
+    -fx-background-color: #1d4ed8;
+    -fx-text-fill: #ffffff;
+}
+
+.table-row-cell:filled:hover {
+    -fx-background-color: #020617;
+}
+
+/* ================================
+   CHARTS (Stats okno)
+   ================================ */
+
+.chart {
+    -fx-background-color: transparent;
+}
+
+.chart-plot-background {
+    -fx-background-color: #020617;
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+}
+
+.chart-legend-item {
+    -fx-text-fill: #e5e7eb;
+}
+
+.axis {
+    -fx-tick-label-fill: #e5e7eb;
+    -fx-text-fill: #e5e7eb;
+}
+
+.axis-label {
+    -fx-text-fill: #e5e7eb;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: #1f2937;
+}
+
+/* ================================
+   FOOTER / small info labels
+   ================================ */
+
+.footer-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #bbf7d0;   /* napr. „Last submitted at …“ */
+}
+/* ==== LABELY V TASK DETAIL OKNE ==== */
+.field-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #9ca3af;      /* sivý popis: Stav, Deadline, Vytvoril */
+}
+
+.section-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e5e7eb;      /* "Popis úlohy", "Tvoje riešenie" */
+}
+
+/* ==== TEXT INPUTY (fix bieleho pozadia) ==== */
+.text-field,
+.text-area {
+    -fx-background-color: #020617;
+    -fx-control-inner-background: #020617;  /* dôležité pre TextArea */
+    -fx-text-fill: #f9fafb;
+    -fx-border-color: #30363d;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-prompt-text-fill: #6b7280;
+    -fx-highlight-fill: #3b82f6;
+}
+
+.text-field:focused,
+.text-area:focused {
+    -fx-border-color: #3b82f6;
+    -fx-background-color: #020617;
+    -fx-control-inner-background: #020617;
+}
+
+/* ==== GLOBAL BACKGROUND – nech je celá scéna tmavá ==== */
+.root {
+    -fx-background-color: #020617;     /* tmavé modro-čierne pozadie */
+    -fx-text-fill: #e5e7eb;
+}
+
+/* ==== LOGIN LEFT SIDE – logo a popis ==== */
+
+/* "StudyHub" */
+.app-title {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f9fafb;
+}
+
+/* text pod StudyHub – popis */
+.subtitle {
+    -fx-font-size: 14px;
+    -fx-text-fill: #cbd5e1;
+}
+
+/* box s Features (ak na ňom máš styleClass="features-card") */
+.features-card {
+    -fx-background-color: #020617;
+    -fx-background-radius: 16;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.55), 22, 0.25, 0, 0);
+}
+
+.features-card .label {
+    -fx-text-fill: #e5e7eb;
+}
+
+/* ===============================
+   LOGIN / REGISTER TABS
+   =============================== */
+
+.tab-pane {
+    -fx-background-color: transparent;
+}
+
+/* Header area behind the tabs */
+.tab-header-area {
+    -fx-background-color: transparent;
+    -fx-padding: 0 0 8 0;
+}
+
+/* Default tab */
+.tab {
+    -fx-background-insets: 0;
+    -fx-padding: 6 14;
+    -fx-background-radius: 6 6 0 0;
+    -fx-background-color: #0f172a;   /* tmavý */
+    -fx-text-base-color: #94a3b8;   /* sivý text */
+}
+
+/* Label vo vnútri tabu */
+.tab .tab-label {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 13px;
+}
+
+/* Hover efekt */
+.tab:hover {
+    -fx-background-color: #1e293b;
+}
+
+/* Selected tab */
+.tab:selected {
+    -fx-background-color: #3b82f6;      /* modré ako primary button */
+    -fx-text-base-color: #ffffff;
+}
+
+.tab:selected .tab-label {
+    -fx-text-fill: #ffffff;
+}
+
+/* Remove ugly top border shadow */
+.tab-pane:top *.tab-header-area {
+    -fx-border-width: 0;
+}
+/* ==== TAB CONTENT AREA DARK ==== */
+.tab-pane > .tab-content-area {
+    -fx-background-color: #020617;     /* rovnaká farba ako login panel */
+    -fx-padding: 0;
+}
+
+.tab-pane:top > .tab-content-area {
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+}
+.tab-pane:top > .tab-header-area {
+    -fx-background-color: #020617;
+}
+
+.meta-value {
+    -fx-text-fill: #d1d5db;   /* SVETLEJŠIA SIVÁ */
+    -fx-font-size: 13px;
+}
+/* ľavý popis: Stav:, Deadline:, Vytvoril: */
+.meta-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #f9fafb;   /* jemnejšia šedá */
+}
+
+/* pravé hodnoty: SUBMITTED, dátum, email */
+.meta-value {
+    -fx-font-size: 13px;
+    -fx-text-fill: #f9fafb;   /* svetlá, pekne čitateľná */
+}

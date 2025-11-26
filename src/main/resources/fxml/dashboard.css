@@ -1,31 +1,35 @@
-/* dashboard.css (ukážka) */
-
+/* ===== Root layout ===== */
 .root {
     -fx-font-family: "Segoe UI", sans-serif;
-    -fx-background-color: #f3f4f6;
+    -fx-background-color: #1a1d27;      /* tmavšie pozadie pre lepší kontrast */
+    -fx-text-fill: #ffffff;             /* globálny text = svetlý */
 }
 
+/* ===== Cards ===== */
 .card {
-    -fx-background-color: white;
+    -fx-background-color: #242a36;      /* mierne svetlejšia karta */
     -fx-background-radius: 12;
-    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.15), 12, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 18, 0.1, 0, 4);
 }
 
+/* ===== Title labels ===== */
 .title-label {
     -fx-font-size: 20px;
     -fx-font-weight: bold;
-    -fx-text-fill: #111827;
+    -fx-text-fill: #ffffff;             /* predtým #111827 → úplne neviditeľné */
 }
 
+/* ===== Subtitle labels ===== */
 .subtitle-label {
     -fx-font-size: 13px;
-    -fx-text-fill: #6b7280;
+    -fx-text-fill: #d1d5db;             /* svetlá šedá → čitateľné */
 }
 
+/* ===== Primary buttons ===== */
 .primary-button {
     -fx-background-color: #2563eb;
     -fx-text-fill: white;
-    -fx-padding: 6 16 6 16;
+    -fx-padding: 6 16;
     -fx-background-radius: 8;
     -fx-font-weight: 600;
 }
@@ -34,7 +38,8 @@
     -fx-background-color: #1d4ed8;
 }
 
+/* ===== Status labels ===== */
 .status-label {
     -fx-font-size: 11px;
-    -fx-text-fill: #ef4444; /* červená pre error; môžeš zmeniť na sivú */
+    -fx-text-fill: #f87171;             /* jemnejšia červená, ale čitateľná */
 }
