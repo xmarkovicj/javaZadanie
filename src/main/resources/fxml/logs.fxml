@@ -23,9 +23,7 @@
                           promptText="Typ akcie"
                           prefWidth="180"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button text="Obnoviť"
-                        onAction="#onRefresh"
-                        styleClass="primary-button"/>
+
             </HBox>
         </VBox>
     </top>

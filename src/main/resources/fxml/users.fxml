@@ -19,11 +19,21 @@
             <HBox spacing="8" alignment="CENTER_LEFT">
                 <TextField fx:id="searchField"
                            promptText="Filter podľa mena alebo e-mailu"/>
+
+                <TextField fx:id="nameField" promptText="Meno nového používateľa"/>
+                <TextField fx:id="emailField" promptText="E-mail nového používateľa"/>
+                <PasswordField fx:id="passwordField" promptText="Heslo"/>
+
+
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button text="Nový používateľ"
                         onAction="#onCreateUser"
                         styleClass="primary-button"/>
+                <Button text="Vymazať vybraného"
+                        onAction="#onDeleteSelected"
+                        styleClass="secondary-button"/>
             </HBox>
+
         </VBox>
     </top>
 

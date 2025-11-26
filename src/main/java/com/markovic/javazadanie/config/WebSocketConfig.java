@@ -12,9 +12,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        // klienti budú počúvať na /topic/...
         config.enableSimpleBroker("/topic");
-        // prefix na "server → controller" (ak by si chcel @MessageMapping)
         config.setApplicationDestinationPrefixes("/app");
     }
 
@@ -22,6 +20,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // endpoint pre handshake
         registry.addEndpoint("/ws")
-                .setAllowedOrigins("*");        // desktop → nevadí
+                .setAllowedOrigins("*");
     }
 }
