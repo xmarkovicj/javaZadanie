@@ -359,7 +359,6 @@ public class GroupDetailController {
     }
 
     // ---------------------------------------------------------
-    // Delete group (ak máš tlačidlo)
     // ---------------------------------------------------------
     @FXML
     private void onDeleteGroup() {
