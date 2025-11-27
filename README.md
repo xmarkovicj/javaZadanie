@@ -384,6 +384,9 @@ Najjednoduchší spôsob spustenia:
 1. V IDE (IntelliJ IDEA) otvoriť projekt ako Maven projekt.
 2. Spustiť `FXLauncher.main()`.
 
+Alebo
+použiť .bat súbor v roote projektu (vyžaduje Docker)
+
 Backend a desktop klient sa spustia v jednom JVM procese.
 
 ---
